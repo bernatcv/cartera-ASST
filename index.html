@@ -190,7 +190,88 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
   .toast{bottom:32px}
 }
 @media (max-width:899px){ .simwrap{display:contents} .bwrap{display:contents} .desk{display:block} .chartrow h2{display:none} .chartrow{display:block} }
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ================= MOTION ================= */
+:root{--ease:cubic-bezier(.22,1,.36,1);--spring:cubic-bezier(.34,1.56,.64,1);--dx:24px}
+body,.card,.tile,.bcard,.tabbar,.sheet,.ibtn,.seg,input.f,.bwrap,.simwrap,.login form{transition:background-color .45s var(--ease),border-color .45s var(--ease),color .45s var(--ease),box-shadow .3s var(--ease),transform .3s var(--ease)}
+/* press + hover */
+.btn,.ibtn,.chip,.bcard,.tabbar button,.seg button,.remember{position:relative;overflow:hidden;-webkit-user-select:none;user-select:none}
+.btn,.ibtn,.chip,.bcard,.seg button{transition:transform .22s var(--spring),box-shadow .3s var(--ease),background-color .3s var(--ease),color .3s var(--ease),filter .2s}
+.btn:active,.ibtn:active,.chip:active,.bcard:active{transform:scale(.95)}
+.seg button:active{transform:scale(.92)}
+@media (hover:hover){
+  .btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px -8px rgba(0,0,0,.35);filter:brightness(1.05)}
+  .ibtn:hover{transform:translateY(-2px);box-shadow:0 8px 18px -10px rgba(0,0,0,.35);border-color:var(--muted)}
+  .chip:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 6px 14px -8px var(--accent)}
+  .tile:hover,.bcard:hover{transform:translateY(-3px);box-shadow:0 14px 30px -18px rgba(0,0,0,.35)}
+  tbody tr{transition:background-color .2s}
+  .seg button:hover{color:var(--ink)}
+}
+.btn:active:hover,.ibtn:active:hover,.chip:active:hover{transform:scale(.95)}
+/* ripple */
+.rip{position:absolute;border-radius:50%;pointer-events:none;background:currentColor;opacity:.18;transform:scale(0);animation:rip .6s var(--ease) forwards}
+@keyframes rip{to{transform:scale(1);opacity:0}}
+/* entrance */
+@keyframes rise{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes viewIn{from{opacity:0;transform:translateX(var(--dx))}to{opacity:1;transform:none}}
+.stg{animation:rise .6s var(--ease) both;animation-delay:calc(var(--i,0) * 55ms)}
+.view.on{animation:viewIn .42s var(--ease) both}
+.login form{animation:rise .7s var(--ease) both}
+.login .logo{animation:logoIn .9s var(--spring) both .1s}
+@keyframes logoIn{from{opacity:0;transform:scale(.4) rotate(-25deg)}to{opacity:1;transform:none}}
+/* skeleton while loading */
+.loading .sk{color:transparent!important;border-radius:8px;background:linear-gradient(90deg,var(--line) 0%,var(--grid) 40%,var(--line) 80%);background-size:300% 100%;animation:shim 1.3s linear infinite}
+@keyframes shim{from{background-position:100% 0}to{background-position:-200% 0}}
+/* value flash after an update */
+@keyframes flash{0%{box-shadow:0 0 0 0 var(--accent)}40%{box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 35%,transparent)}100%{box-shadow:0 0 0 0 transparent}}
+.flash{animation:flash 1.1s var(--ease)}
+/* segmented thumb */
+.seg{position:relative;isolation:isolate}
+.seg .thumb{position:absolute;top:3px;bottom:3px;left:0;width:0;border-radius:8px;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.18);z-index:-1;transition:transform .45s var(--spring),width .45s var(--spring);pointer-events:none}
+.seg.thumbed button[aria-pressed="true"]{background:transparent;box-shadow:none}
+/* tab bar indicator + icon pop */
+.tabbar{position:fixed}
+.tabbar .ind{position:absolute;top:6px;left:0;height:52px;width:76px;border-radius:16px;background:color-mix(in srgb,var(--accent) 14%,transparent);transition:transform .5s var(--spring),width .5s var(--spring);pointer-events:none}
+.tabbar button{z-index:1;transition:color .3s var(--ease)}
+.tabbar button svg{transition:transform .4s var(--spring)}
+.tabbar button[aria-current="page"] svg{transform:translateY(-2px) scale(1.08)}
+.pop svg{animation:pop .5s var(--spring)}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(.75)}100%{transform:translateY(-2px) scale(1.08)}}
+/* theme icon */
+#themeBtn svg{transition:transform .6s var(--spring)}
+#themeBtn:active svg{transform:rotate(-90deg) scale(.8)}
+/* refresh done */
+.ibtn.done{color:var(--good);border-color:var(--good)}
+.ibtn.done svg{animation:pop .5s var(--spring)}
+/* sheets */
+.scrim{opacity:0;transition:opacity .35s var(--ease);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.scrim.open{opacity:1}
+.sheet{transform:translateY(105%);transition:transform .5s var(--ease)}
+.sheet.open{transform:none}
+.sheet.open > *{animation:rise .5s var(--ease) both}
+.sheet.open > *:nth-child(2){animation-delay:.04s}.sheet.open > *:nth-child(3){animation-delay:.08s}.sheet.open > *:nth-child(4){animation-delay:.12s}.sheet.open > *:nth-child(5){animation-delay:.16s}.sheet.open > *:nth-child(6){animation-delay:.2s}
+/* computed value field */
+.calc{font-family:var(--mono);font-size:22px;font-weight:600;background:color-mix(in srgb,var(--accent) 10%,var(--bg));border:1px dashed color-mix(in srgb,var(--accent) 55%,transparent);border-radius:12px;padding:10px 12px;min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.calc small{font-family:var(--display);font-size:11px;font-weight:600;color:var(--accent-ink);text-transform:uppercase;letter-spacing:.05em}
+.calc.bump{animation:bump .35s var(--spring)}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.03)}100%{transform:scale(1)}}
+/* toast */
+.toast{opacity:0;transform:translate(-50%,16px) scale(.96);transition:opacity .35s var(--ease),transform .45s var(--spring)}
+.toast.show{opacity:1;transform:translate(-50%,0) scale(1)}
+/* chart reveal */
+.chartbox canvas.reveal{animation:reveal 1s var(--ease) both}
+@keyframes reveal{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+.tip{transition:opacity .15s,left .12s var(--ease),top .12s var(--ease)}
+/* theme switch: circular reveal */
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+::view-transition-new(root){z-index:2}
+@media (min-width:900px){
+  .sheet{transform:translate(-50%,-46%) scale(.94);opacity:0;transition:transform .45s var(--spring),opacity .3s var(--ease)}
+  .sheet.open{transform:translate(-50%,-50%) scale(1);opacity:1}
+  .view.on{animation:none}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
@@ -210,7 +291,7 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
 </div>
 
 <!-- ============ APP ============ -->
-<div class="app" id="appView" hidden>
+<div class="app loading" id="appView" hidden>
   <div class="top">
     <div class="brand"><h1><span class="m-title">Cartera</span></h1><span class="tk">ASST</span></div>
     <div class="iconbtns">
@@ -224,19 +305,19 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
   <section class="view on" id="vInici" aria-label="Inici">
     <div class="hero">
       <span class="lbl" style="font-size:13px">Valor de la cartera</span>
-      <span class="big" id="hVal">–</span>
-      <div class="plrow"><span id="hPL">–</span><span class="pill" id="hR">–</span></div>
+      <span class="big sk" id="hVal">–</span>
+      <div class="plrow"><span id="hPL" class="sk">–</span><span class="pill" id="hR">–</span></div>
       <span class="num muted" style="font-size:12px;margin-top:4px" id="hPrice">–</span>
     </div>
     <div class="tiles">
-      <div class="tile d-only"><span class="lbl" id="tCurL">Preu ASST</span><span class="v" id="tCur">–</span><span class="n" id="tCurN">–</span></div>
-      <div class="tile d-only"><span class="lbl">Valor actual</span><span class="v" id="tVal">–</span><span class="n" id="tValN">–</span></div>
-      <div class="tile"><span class="lbl">Invertit</span><span class="v" id="tInv">–</span><span class="n" id="tInvN">–</span></div>
-      <div class="tile"><span class="lbl">Preu mitjà</span><span class="v" id="tAvg">–</span><span class="n" id="tAvgN">–</span></div>
-      <div class="tile m-only"><span class="lbl">Accions</span><span class="v" id="tSh">–</span><span class="n" id="tShN">–</span></div>
-      <div class="tile m-only"><span class="lbl">Comissions</span><span class="v" id="tCom">–</span><span class="n">totals</span></div>
-      <div class="tile hl d-only" id="tPLt"><span class="lbl">Guany / pèrdua</span><span class="v" id="tPL">–</span><span class="n">en euros</span></div>
-      <div class="tile hl d-only" id="tRt"><span class="lbl">Rentabilitat</span><span class="v" id="tR">–</span><span class="n">sobre l'invertit</span></div>
+      <div class="tile d-only"><span class="lbl" id="tCurL">Preu ASST</span><span class="v sk" id="tCur">–</span><span class="n" id="tCurN">–</span></div>
+      <div class="tile d-only"><span class="lbl">Valor actual</span><span class="v sk" id="tVal">–</span><span class="n" id="tValN">–</span></div>
+      <div class="tile"><span class="lbl">Invertit</span><span class="v sk" id="tInv">–</span><span class="n" id="tInvN">–</span></div>
+      <div class="tile"><span class="lbl">Preu mitjà</span><span class="v sk" id="tAvg">–</span><span class="n" id="tAvgN">–</span></div>
+      <div class="tile m-only"><span class="lbl">Accions</span><span class="v sk" id="tSh">–</span><span class="n" id="tShN">–</span></div>
+      <div class="tile m-only"><span class="lbl">Comissions</span><span class="v sk" id="tCom">–</span><span class="n">totals</span></div>
+      <div class="tile hl d-only" id="tPLt"><span class="lbl">Guany / pèrdua</span><span class="v sk" id="tPL">–</span><span class="n">en euros</span></div>
+      <div class="tile hl d-only" id="tRt"><span class="lbl">Rentabilitat</span><span class="v sk" id="tR">–</span><span class="n">sobre l'invertit</span></div>
     </div>
     <div class="card chartcard">
       <div class="chartrow"><h2>Preu d'ASST i les teves compres</h2>
@@ -261,9 +342,9 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
       <div class="bwrap">
         <div class="sectionhead"><h2>Compres</h2><button class="btn" type="button" id="addBtn" style="min-height:44px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Afegeix</button></div>
         <div class="card sum"><div class="sumstrip">
-          <div><div class="lbl">Invertit</div><div class="v" id="sInv">–</div></div>
-          <div><div class="lbl">Ara val</div><div class="v" id="sVal">–</div></div>
-          <div><div class="lbl">Guany</div><div class="v" id="sPL">–</div></div>
+          <div><div class="lbl">Invertit</div><div class="v sk" id="sInv">–</div></div>
+          <div><div class="lbl">Ara val</div><div class="v sk" id="sVal">–</div></div>
+          <div><div class="lbl">Guany</div><div class="v sk" id="sPL">–</div></div>
         </div></div>
         <div class="caps" id="bCaps"></div>
         <div class="blist" id="blist"></div>
@@ -311,6 +392,7 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
 </div>
 
 <nav class="tabbar" id="tabbar" aria-label="Seccions" hidden>
+  <span class="ind" id="tabInd" aria-hidden="true"></span>
   <button type="button" data-v="vInici" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>Inici</button>
   <button type="button" data-v="vCompres"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg>Compres</button>
   <button type="button" data-v="vSim"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Simulador</button>
@@ -323,12 +405,12 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
   <div class="sheethead"><h3 id="buyTitle">Nova compra</h3><button class="btn ghost" type="button" data-close style="min-height:40px">Cancel·la</button></div>
   <div class="fgrid">
     <label class="f full" for="bDate">Data<input class="f" id="bDate" type="date" required></label>
-    <label class="f" for="bVal">Valor (€, amb comissió)<input class="f" id="bVal" type="number" step="0.01" min="0.01" inputmode="decimal" placeholder="500,00" required></label>
+    <label class="f full" for="bSh">Num. accions<input class="f" id="bSh" type="number" step="0.000001" min="0.000001" inputmode="decimal" placeholder="24,788872" required></label>
     <label class="f" for="bPrice">Preu ASST (€)<input class="f" id="bPrice" type="number" step="0.0001" min="0.0001" inputmode="decimal" placeholder="20,13" required></label>
     <label class="f" for="bCom">Comissió (€)<input class="f" id="bCom" type="number" step="0.01" min="0" inputmode="decimal" value="1"></label>
-    <label class="f" for="bSh">Num. accions<input class="f" id="bSh" type="number" step="0.000001" min="0.000001" inputmode="decimal"></label>
+    <div class="full" style="display:grid;gap:6px"><span class="lbl" id="bValL">Valor de la compra</span><output class="calc" id="bValOut" for="bSh bPrice bCom" aria-labelledby="bValL"><span id="bValTxt">–</span><small>calculat</small></output></div>
   </div>
-  <p class="muted" style="margin:-4px 0 0;font-size:12px">Les accions es calculen soles. Si el broker et dona una altra xifra, canvia-la.</p>
+  <p class="muted" style="margin:-4px 0 0;font-size:12px">Valor = accions × preu + comissió. El calcula l'app sola.</p>
   <div class="actions"><button class="btn" type="submit" id="bSave">Desa la compra</button></div>
   <div class="actions" id="bDelRow" hidden><button class="btn danger" type="button" id="bDel">Esborra aquesta compra</button></div>
   <div class="msg" id="bMsg" role="status"></div>
@@ -372,11 +454,35 @@ const today = () => { const n=new Date(); return new Date(n.getTime()-n.getTimez
 const sleep = ms => new Promise(r=>setTimeout(r,ms));
 const cls = v => v>0?'pos':v<0?'neg':'';
 const isDesk = () => matchMedia('(min-width:900px)').matches;
+const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const haptic = (ms=8) => { try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} };
+// animated numbers: counts from the previous value to the new one
+function setNum(id, v, f, cl){
+  const el=$(id); if(cl!==undefined) el.className=cl;
+  const prev = el._v===undefined ? 0 : el._v; el._v = v;
+  if(prev===undefined || !isFinite(prev) || !isFinite(v) || prev===v || reduced()){ el.textContent=f(v); return; }
+  cancelAnimationFrame(el._raf); const t0=performance.now(), d=750;
+  const step=now=>{ const k=Math.min(1,(now-t0)/d), e=1-Math.pow(1-k,4); el.textContent=f(prev+(v-prev)*e); if(k<1) el._raf=requestAnimationFrame(step); };
+  el._raf=requestAnimationFrame(step);
+}
+function flash(ids){ ids.forEach(i=>{ const el=$(i); if(!el) return; const c=el.closest('.tile,.hero,.card')||el; c.classList.remove('flash'); void c.offsetWidth; c.classList.add('flash'); }); }
 
 const CFG = window.CARTERA_CONFIG || {};
 let sb = null, user = null;
 let buys = [], prices = [], avKey = '';
-let range = 90, chart = null, simCur = 'EUR', simEur = null, editing = null, shTouched = false;
+let range = 90, chart = null, chartMode = 'first', listSig = '', simCur = 'EUR', simEur = null, editing = null, shTouched = false;
+
+// ---------- segmented thumbs ----------
+function placeThumbs(){ document.querySelectorAll('.seg').forEach(seg=>{
+  let th=seg.querySelector('.thumb'); if(!th){ th=document.createElement('span'); th.className='thumb'; th.setAttribute('aria-hidden','true'); seg.prepend(th); seg.classList.add('thumbed'); }
+  const a=seg.querySelector('button[aria-pressed="true"]'); if(!a || !a.offsetWidth){ th.style.opacity=a?0:0; return; }
+  th.style.opacity=1; th.style.width=a.offsetWidth+'px'; th.style.transform=`translateX(${a.offsetLeft}px)`; }); }
+new MutationObserver(ms=>{ if(ms.some(m=>m.attributeName==='aria-pressed')) placeThumbs(); }).observe(document.body,{subtree:true,attributes:true,attributeFilter:['aria-pressed']});
+// ---------- ripple ----------
+document.addEventListener('pointerdown',e=>{ if(reduced()) return; const b=e.target.closest('.btn,.ibtn,.chip,.bcard,.tabbar button'); if(!b) return;
+  const r=b.getBoundingClientRect(), s=Math.max(r.width,r.height)*2.2, sp=document.createElement('span');
+  sp.className='rip'; sp.style.width=sp.style.height=s+'px'; sp.style.left=(e.clientX-r.left-s/2)+'px'; sp.style.top=(e.clientY-r.top-s/2)+'px';
+  b.appendChild(sp); setTimeout(()=>sp.remove(),650); },{passive:true});
 
 // ---------- theme ----------
 const SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
@@ -391,16 +497,25 @@ function applyTheme(){
   $('themeBtn').setAttribute('aria-label', dark ? 'Canvia a tema clar' : 'Canvia a tema fosc');
   document.querySelectorAll('#themeSeg button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.t===pref));
   if(chart) render();
+  requestAnimationFrame(placeThumbs);
 }
 function setPref(p){ try{ localStorage.setItem('tema',p); }catch(e){} applyTheme(); }
-$('themeBtn').addEventListener('click',()=>setPref(document.documentElement.dataset.theme==='dark'?'light':'dark'));
+function themeReveal(fn, x, y){
+  if(!document.startViewTransition || reduced()){ fn(); return; }
+  const r=Math.hypot(Math.max(x,innerWidth-x), Math.max(y,innerHeight-y));
+  const tr=document.startViewTransition(fn);
+  tr.ready.then(()=>document.documentElement.animate({clipPath:[`circle(0px at ${x}px ${y}px)`,`circle(${r}px at ${x}px ${y}px)`]},{duration:650,easing:'cubic-bezier(.22,1,.36,1)',pseudoElement:'::view-transition-new(root)'})).catch(()=>{});
+}
+$('themeBtn').addEventListener('click',e=>{ haptic(); const b=$('themeBtn').getBoundingClientRect();
+  themeReveal(()=>setPref(document.documentElement.dataset.theme==='dark'?'light':'dark'), b.left+b.width/2, b.top+b.height/2); });
 document.querySelectorAll('#themeSeg button').forEach(b=>b.addEventListener('click',()=>setPref(b.dataset.t)));
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyTheme);
 applyTheme();
 
 // ---------- toast ----------
 let toastT;
-function toast(t){ const el=$('toast'); el.textContent=t; el.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>el.hidden=true, 4500); }
+function toast(t){ const el=$('toast'); el.textContent=t; el.hidden=false; requestAnimationFrame(()=>el.classList.add('show')); clearTimeout(toastT);
+  toastT=setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>{ if(!el.classList.contains('show')) el.hidden=true; },450); }, 4500); }
 
 // ---------- data model ----------
 function calcShares(v,c,p){ return (v-(c||0))/p; }
@@ -422,41 +537,45 @@ function cssv(n){ return getComputedStyle(document.documentElement).getPropertyV
 // ---------- render ----------
 function render(){
   const T = totals();
-  $('hVal').textContent = fmtE.format(T.val);
-  $('hPL').textContent = signE(T.pl); $('hPL').className = cls(T.pl);
+  setNum('hVal', T.val, v=>fmtE.format(v));
+  setNum('hPL', T.pl, signE, 'sk '+cls(T.pl));
   $('hR').textContent = fmtP.format(T.r); $('hR').className = 'pill '+cls(T.pl);
   $('hPrice').textContent = `ASST ${fmtE.format(T.cur)} · ${fmtU.format(T.curO.usd)} · tancament ${fds(T.curD)}`;
   $('tCurL').textContent = `Preu ASST · ${fds(T.curD)}`;
-  $('tCur').textContent = fmtE.format(T.cur);
+  setNum('tCur', T.cur, v=>fmtE.format(v));
   $('tCurN').textContent = (T.curO.est?'≈ ':'') + fmtU.format(T.curO.usd);
-  $('tVal').textContent = fmtE.format(T.val); $('tValN').textContent = `${fmtS.format(T.sh)} accions`;
-  $('tInv').textContent = fmtE.format(T.inv); $('tInvN').textContent = `${buys.length} ${buys.length===1?'compra':'compres'}`;
-  $('tAvg').textContent = T.sh? fmtE.format(T.avg) : '–'; $('tAvgN').textContent = T.sh? '≈ '+fmtU.format(T.avg*T.curO.fx) : '';
-  $('tSh').textContent = fmtS.format(T.sh); $('tShN').textContent = 'a '+fmtE.format(T.cur);
-  $('tCom').textContent = fmtE.format(T.com);
-  $('tPL').textContent = signE(T.pl); $('tPL').className='v '+cls(T.pl);
-  $('tR').textContent = fmtP.format(T.r); $('tR').className='v '+cls(T.pl);
+  setNum('tVal', T.val, v=>fmtE.format(v)); $('tValN').textContent = `${fmtS.format(T.sh)} accions`;
+  setNum('tInv', T.inv, v=>fmtE.format(v)); $('tInvN').textContent = `${buys.length} ${buys.length===1?'compra':'compres'}`;
+  setNum('tAvg', T.avg, v=>T.sh? fmtE.format(v) : '–'); $('tAvgN').textContent = T.sh? '≈ '+fmtU.format(T.avg*T.curO.fx) : '';
+  setNum('tSh', T.sh, v=>fmtS.format(v)); $('tShN').textContent = 'a '+fmtE.format(T.cur);
+  setNum('tCom', T.com, v=>fmtE.format(v));
+  setNum('tPL', T.pl, signE, 'v sk '+cls(T.pl));
+  setNum('tR', T.r, v=>fmtP.format(v), 'v sk '+cls(T.pl));
   const tone = T.pl>0?'var(--good)':T.pl<0?'var(--bad)':'var(--line)';
   ['tPLt','tRt'].forEach(i=>$(i).style.setProperty('--tone',tone));
   $('updLine').textContent = `Últim tancament: ${fd(T.curD)}${T.curO.est?' (canvi EUR/USD aproximat)':''}.`;
 
   // purchases
-  $('sInv').textContent = fmtE.format(T.inv); $('sVal').textContent = fmtE.format(T.val);
-  $('sPL').textContent = signE(T.pl); $('sPL').className = 'v '+cls(T.pl);
+  setNum('sInv', T.inv, v=>fmtE.format(v)); setNum('sVal', T.val, v=>fmtE.format(v));
+  setNum('sPL', T.pl, signE, 'v sk '+cls(T.pl));
   const maxV = Math.max(1,...buys.map(b=>+b.valor));
   const desc = [...buys].sort((a,b)=>a.data<b.data?1:-1);
+  const asc = [...buys].sort((a,b)=>a.data<b.data?-1:1);
+  const sig = JSON.stringify([buys.map(b=>[b.id,b.data,b.valor,b.preu,b.comissio,b.accions]), T.cur]);
+  const rebuild = sig!==listSig; listSig = sig;
+  if(rebuild){
   $('bCaps').textContent = buys.length ? `${buys.length} ${buys.length===1?'compra':'compres'} · més recent primer` : '';
   $('blist').innerHTML = desc.length ? desc.map(b=>{
     const n=shares(b), d=n*T.cur-b.valor, sz=12+16*Math.sqrt(b.valor/maxV);
-    return `<button type="button" class="bcard" data-id="${b.id}" aria-label="Edita la compra del ${fd(b.data)}">
+    return `<button type="button" class="bcard stg" style="--i:${desc.indexOf(b)}" data-id="${b.id}" aria-label="Edita la compra del ${fd(b.data)}">
       <span class="dot"><i style="width:${sz.toFixed(0)}px;height:${sz.toFixed(0)}px"></i></span>
       <span class="d">${fd(b.data)}</span><span class="r">${fmtE.format(b.valor)}</span>
       <span class="s">${fmtS.format(n)} acc. a ${fmtE.format(b.preu)}</span><span class="r ${cls(d)}" style="font-size:12px">${signE(d)}</span></button>`;
   }).join('') : '<div class="empty">Encara no hi ha compres. Prem «Afegeix» per posar la primera.</div>';
-  const asc = [...buys].sort((a,b)=>a.data<b.data?-1:1);
   $('btb').innerHTML = asc.map(b=>{ const n=shares(b), d=n*T.cur-b.valor, sz=10+12*Math.sqrt(b.valor/maxV);
-    return `<tr data-id="${b.id}" tabindex="0"><td><span style="display:inline-flex;align-items:center;gap:10px"><i style="display:block;width:${sz.toFixed(0)}px;height:${sz.toFixed(0)}px;border-radius:50%;background:var(--accent)"></i>${fd(b.data)}</span></td><td>${fmtE.format(b.valor)}</td><td>${fmtE.format(b.preu)}</td><td>${fmtS.format(n)}</td><td>${fmtE.format(b.comissio)}</td><td class="${cls(d)}">${signE(d)}</td></tr>`; }).join('');
+    return `<tr class="stg" style="--i:${asc.indexOf(b)}" data-id="${b.id}" tabindex="0"><td><span style="display:inline-flex;align-items:center;gap:10px"><i style="display:block;width:${sz.toFixed(0)}px;height:${sz.toFixed(0)}px;border-radius:50%;background:var(--accent)"></i>${fd(b.data)}</span></td><td>${fmtE.format(b.valor)}</td><td>${fmtE.format(b.preu)}</td><td>${fmtS.format(n)}</td><td>${fmtE.format(b.comissio)}</td><td class="${cls(d)}">${signE(d)}</td></tr>`; }).join('');
   $('btf').innerHTML = buys.length ? `<tr><td>Total</td><td>${fmtE.format(T.inv)}</td><td>${fmtE.format(T.avg)}</td><td>${fmtS.format(T.sh)}</td><td>${fmtE.format(T.com)}</td><td class="${cls(T.pl)}">${signE(T.pl)}</td></tr>` : '';
+  }
 
   renderSim(T);
   drawChart(T, asc, maxV);
@@ -467,13 +586,13 @@ function renderSim(T){
   simEur = raw>0 ? (simCur==='EUR'? raw : raw/T.curO.fx) : null;
   const on = simEur!=null && T.sh>0;
   $('simRes').classList.toggle('off',!on); $('lgSim').hidden = !on;
-  if(!on){ ['sV','sD','sPLv','sR'].forEach(i=>$(i).textContent='–'); $('sVx').textContent=T.sh?'escriu un preu':'afegeix una compra'; $('sDx').textContent=''; $('sPLx').textContent='';
+  if(!on){ ['sV','sD','sPLv','sR'].forEach(i=>{ $(i).textContent='–'; $(i)._v=undefined; }); $('sVx').textContent=T.sh?'escriu un preu':'afegeix una compra'; $('sDx').textContent=''; $('sPLx').textContent='';
     ['sPLt','sRt'].forEach(i=>$(i).style.setProperty('--tone','var(--line)')); $('sPLv').className='v'; $('sR').className='v'; return; }
   const v=T.sh*simEur, pl=v-T.inv, r=T.inv? pl/T.inv:0;
-  $('sV').textContent=fmtE.format(v); $('sVx').textContent='≈ '+fmtU.format(v*T.curO.fx);
-  $('sD').textContent=fmtP.format(simEur/T.cur-1); $('sDx').textContent='ara '+fmtE.format(T.cur);
-  $('sPLv').textContent=signE(pl); $('sPLv').className='v '+cls(pl); $('sPLx').textContent=signE(v-T.val)+' vs. avui';
-  $('sR').textContent=fmtP.format(r); $('sR').className='v '+cls(pl);
+  setNum('sV', v, x=>fmtE.format(x)); $('sVx').textContent='≈ '+fmtU.format(v*T.curO.fx);
+  setNum('sD', simEur/T.cur-1, x=>fmtP.format(x)); $('sDx').textContent='ara '+fmtE.format(T.cur);
+  setNum('sPLv', pl, signE, 'v '+cls(pl)); $('sPLx').textContent=signE(v-T.val)+' vs. avui';
+  setNum('sR', r, x=>fmtP.format(x), 'v '+cls(pl));
   const tone=pl>0?'var(--good)':pl<0?'var(--bad)':'var(--line)'; ['sPLt','sRt'].forEach(i=>$(i).style.setProperty('--tone',tone));
 }
 
@@ -506,6 +625,7 @@ function externalTip(ctx){
   el.style.left=x+'px'; el.style.top=y+'px';
 }
 function drawChart(T, asc, maxV){
+  const animMode = reduced() ? 'none' : chartMode; chartMode = 'none';
   const ink=cssv('--ink'), grid=cssv('--grid'), muted=cssv('--muted'), acc=cssv('--accent'), surf=cssv('--surface');
   const line=T.s.map(([d,v])=>({x:ts(d),y:v.eur,usd:v.usd,est:v.est,d}));
   const lastX=line[line.length-1].x, firstX=line[0].x, minX=range? Math.max(firstX,lastX-range*DAY) : firstX;
@@ -514,13 +634,16 @@ function drawChart(T, asc, maxV){
   const vis=line.filter(p=>p.x>=minX).map(p=>p.y).concat(bub.filter(p=>p.x>=minX).map(p=>p.y)); if(T.avg) vis.push(T.avg); if(simEur!=null) vis.push(simEur);
   const lo=Math.min(...vis), hi=Math.max(...vis), pad=(hi-lo)*.12||1;
   const data={datasets:[
-    {type:'bubble',label:'Compres',data:bub,backgroundColor:acc+'EB',borderColor:surf,borderWidth:1.5,hoverBorderColor:ink,hoverBorderWidth:2,order:0},
+    {type:'bubble',label:'Compres',data:bub,backgroundColor:acc+'EB',borderColor:surf,borderWidth:1.5,hoverBorderColor:ink,hoverBorderWidth:2.5,hoverRadius:4,order:0,
+      animations: animMode==='none' ? {} : {radius:{from:0,duration:700,easing:'easeOutBack',delay:(c)=>c.type==='data'? (animMode==='first'?650:200)+c.dataIndex*110 : 0}}},
     {type:'line',label:'Preu',data:line,borderColor:ink,borderWidth:1.8,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:ink,pointHoverBorderColor:surf,pointHoverBorderWidth:2,tension:0,order:2,
       fill:'origin',backgroundColor:(c)=>{const {ctx,chartArea}=c.chart; if(!chartArea) return 'transparent'; const g=ctx.createLinearGradient(0,chartArea.top,0,chartArea.bottom); g.addColorStop(0,ink+'1A'); g.addColorStop(1,ink+'00'); return g;}},
     {type:'line',label:'Mitjà',data:T.avg?[{x:minX,y:T.avg},{x:lastX+DAY,y:T.avg}]:[],borderColor:muted,borderWidth:1.5,borderDash:[2,4],pointRadius:0,pointHoverRadius:0,order:1},
     {type:'line',label:'Suposat',data:simEur!=null?[{x:minX,y:simEur},{x:lastX+DAY,y:simEur}]:[],borderColor:acc,borderWidth:2,borderDash:[6,4],pointRadius:0,pointHoverRadius:0,order:1}
   ]};
-  const options={responsive:true,maintainAspectRatio:false,animation:false,
+  const options={responsive:true,maintainAspectRatio:false,
+    animation: animMode==='none' ? false : {duration: animMode==='first'?900:550, easing:'easeOutQuart'},
+
     events:['mousemove','mouseout','click','touchstart','touchmove','touchend'],
     interaction:{mode:'cartera',intersect:false}, layout:{padding:{top:16,right:desk?12:4}},
     scales:{
@@ -530,36 +653,52 @@ function drawChart(T, asc, maxV){
     },
     plugins:{legend:{display:false},tooltip:{enabled:false,external:externalTip}}
   };
-  if(chart){ chart.data=data; chart.options=options; chart.update('none'); }
+  if(animMode!=='none'){ const cv=$('chart'); cv.classList.remove('reveal'); void cv.offsetWidth; cv.classList.add('reveal'); }
+  if(chart){ chart.data=data; chart.options=options; chart.update(animMode==='none'?'none':undefined); }
   else chart=new Chart($('chart'),{data,options,plugins:[crosshair]});
 }
 $('chartbox').addEventListener('touchend',()=>setTimeout(()=>{ if(chart){ chart.setActiveElements([]); chart.tooltip.setActiveElements([],{x:0,y:0}); chart.update('none'); $('tip').style.opacity=0; } },2500));
-document.querySelectorAll('#rng button').forEach(b=>b.addEventListener('click',()=>{ range=+b.dataset.r; document.querySelectorAll('#rng button').forEach(x=>x.setAttribute('aria-pressed',x===b)); render(); }));
-let rzT; addEventListener('resize',()=>{ clearTimeout(rzT); rzT=setTimeout(render,200); });
+document.querySelectorAll('#rng button').forEach(b=>b.addEventListener('click',()=>{ haptic(); range=+b.dataset.r; chartMode='range'; document.querySelectorAll('#rng button').forEach(x=>x.setAttribute('aria-pressed',x===b)); render(); }));
+let rzT; addEventListener('resize',()=>{ clearTimeout(rzT); rzT=setTimeout(()=>{ render(); placeThumbs(); placeInd(); },200); });
 
 // ---------- tabs (phone) ----------
+const TABS=['vInici','vCompres','vSim'];
+function placeInd(){ const a=document.querySelector('#tabbar button[aria-current="page"]'), ind=$('tabInd'); if(!a||!ind) return;
+  ind.style.width=a.offsetWidth+'px'; ind.style.transform=`translateX(${a.offsetLeft}px)`; }
 document.querySelectorAll('#tabbar button').forEach(b=>b.addEventListener('click',()=>{
+  const cur=document.querySelector('.view.on'), from=TABS.indexOf(cur?cur.id:'vInici'), to=TABS.indexOf(b.dataset.v);
+  if(from===to){ scrollTo({top:0,behavior:'smooth'}); return; }
+  haptic(); document.documentElement.style.setProperty('--dx', (to>from?28:-28)+'px');
+  b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on', v.id===b.dataset.v));
   document.querySelectorAll('#tabbar button').forEach(x=>{ if(x===b) x.setAttribute('aria-current','page'); else x.removeAttribute('aria-current'); });
-  scrollTo(0,0); if(b.dataset.v==='vInici') render();
+  placeInd(); scrollTo(0,0);
+  if(b.dataset.v==='vInici'){ chartMode='range'; render(); }
+  requestAnimationFrame(placeThumbs);
 }));
 
 // ---------- sheets ----------
-function openSheet(id){ $('scrim').hidden=false; $(id).hidden=false; }
-function closeSheets(){ $('scrim').hidden=true; $('buySheet').hidden=true; $('setSheet').hidden=true; }
+function openSheet(id){ haptic(); const s=$(id), sc=$('scrim'); sc.hidden=false; s.hidden=false;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ sc.classList.add('open'); s.classList.add('open'); placeThumbs(); })); }
+function closeSheets(){ const sc=$('scrim'); sc.classList.remove('open');
+  ['buySheet','setSheet'].forEach(id=>{ const s=$(id); if(s.hidden) return; s.classList.remove('open'); setTimeout(()=>{ if(!s.classList.contains('open')) s.hidden=true; }, reduced()?0:460); });
+  setTimeout(()=>{ if(!sc.classList.contains('open')) sc.hidden=true; }, reduced()?0:360); }
 $('scrim').addEventListener('click',closeSheets);
 document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',closeSheets));
 addEventListener('keydown',e=>{ if(e.key==='Escape') closeSheets(); });
 
-function preview(){ if(shTouched) return; const v=+$('bVal').value, p=+$('bPrice').value, c=+$('bCom').value||0; $('bSh').value = v>0&&p>0&&v>c ? calcShares(v,c,p).toFixed(6) : ''; }
-['bVal','bPrice','bCom'].forEach(i=>$(i).addEventListener('input',preview));
-$('bSh').addEventListener('input',()=>{ shTouched=$('bSh').value!==''; if(!shTouched) preview(); });
+function buyValue(){ const n=+$('bSh').value, p=+$('bPrice').value, c=+$('bCom').value||0; return n>0&&p>0 ? +(n*p+c).toFixed(2) : null; }
+let lastBV=null;
+function preview(){ const v=buyValue(), o=$('bValOut');
+  $('bValTxt').textContent = v==null ? '–' : fmtE.format(v);
+  if(v!==lastBV && v!=null){ o.classList.remove('bump'); void o.offsetWidth; o.classList.add('bump'); } lastBV=v; }
+['bSh','bPrice','bCom'].forEach(i=>$(i).addEventListener('input',preview));
 function openBuy(b){
-  editing = b ? b.id : null; shTouched = !!b; $('bMsg').textContent='';
+  editing = b ? b.id : null; $('bMsg').textContent=''; lastBV=null;
   $('buyTitle').textContent = b ? `Compra del ${fd(b.data)}` : 'Nova compra';
-  $('bDate').value = b ? b.data : today(); $('bVal').value = b ? b.valor : ''; $('bPrice').value = b ? b.preu : ''; $('bCom').value = b ? b.comissio : 1; $('bSh').value = b ? shares(b).toFixed(6) : '';
+  $('bDate').value = b ? b.data : today(); $('bPrice').value = b ? b.preu : ''; $('bCom').value = b ? b.comissio : 1; $('bSh').value = b ? shares(b).toFixed(6) : ''; preview();
   $('bSave').textContent = b ? 'Desa els canvis' : 'Desa la compra'; $('bDelRow').hidden = !b; $('bDel').textContent='Esborra aquesta compra'; delete $('bDel').dataset.confirm;
-  openSheet('buySheet'); if(!b) setTimeout(()=>$('bVal').focus(),50);
+  openSheet('buySheet'); if(!b && isDesk()) setTimeout(()=>$('bSh').focus(),350);
 }
 $('addBtn').addEventListener('click',()=>openBuy(null));
 $('blist').addEventListener('click',e=>{ const c=e.target.closest('.bcard'); if(c) openBuy(buys.find(b=>b.id===c.dataset.id)); });
@@ -568,24 +707,25 @@ $('btb').addEventListener('keydown',e=>{ if(e.key==='Enter'){ const r=e.target.c
 
 $('buySheet').addEventListener('submit', async e=>{
   e.preventDefault();
-  const rec={data:$('bDate').value, valor:+(+$('bVal').value).toFixed(2), preu:+$('bPrice').value, comissio:+(+($('bCom').value||0)).toFixed(2)};
-  rec.accions = $('bSh').value ? +(+$('bSh').value).toFixed(6) : +calcShares(rec.valor,rec.comissio,rec.preu).toFixed(6);
+  const rec={data:$('bDate').value, accions:+(+$('bSh').value).toFixed(6), preu:+$('bPrice').value, comissio:+(+($('bCom').value||0)).toFixed(2)};
+  rec.valor = +(rec.accions*rec.preu + rec.comissio).toFixed(2);
   const m=$('bMsg'); m.className='msg err';
-  if(!rec.data||!(rec.valor>0)||!(rec.preu>0)) return m.textContent='Omple la data, el valor i el preu.';
-  if(rec.comissio>=rec.valor) return m.textContent='La comissió ha de ser més petita que el valor.';
-  if(!(rec.accions>0)) return m.textContent="El nombre d'accions ha de ser més gran que zero.";
+  if(!rec.data) return m.textContent='Posa la data de la compra.';
+  if(!(rec.accions>0)) return m.textContent="Posa el nombre d'accions (fins a 6 decimals).";
+  if(!(rec.preu>0)) return m.textContent="Posa el preu d'ASST en euros.";
+  if(rec.comissio<0) return m.textContent='La comissió no pot ser negativa.';
   $('bSave').disabled=true;
   const q = editing ? sb.from('compres').update(rec).eq('id',editing) : sb.from('compres').insert(rec);
   const {error} = await q; $('bSave').disabled=false;
   if(error){ m.textContent="No s'ha pogut desar: "+error.message; return; }
-  closeSheets(); toast(editing?'Compra actualitzada.':'Compra afegida.'); await loadData();
+  haptic(14); closeSheets(); toast(editing?'Compra actualitzada.':'Compra afegida.'); listSig=''; await loadData(); flash(['tInv','hVal']);
 });
 $('bDel').addEventListener('click', async ()=>{
   const b=$('bDel');
   if(!b.dataset.confirm){ b.dataset.confirm='1'; b.textContent='Segur? Torna a prémer per esborrar'; return; }
   const {error}=await sb.from('compres').delete().eq('id',editing);
   if(error){ $('bMsg').className='msg err'; $('bMsg').textContent="No s'ha pogut esborrar: "+error.message; return; }
-  closeSheets(); toast('Compra esborrada.'); await loadData();
+  haptic(14); closeSheets(); toast('Compra esborrada.'); listSig=''; await loadData();
 });
 
 // ---------- settings ----------
@@ -605,7 +745,7 @@ document.querySelectorAll('#curSeg button').forEach(b=>b.addEventListener('click
   if(raw>0) $('simVal').value=(b.dataset.c==='USD'? raw*fx : raw/fx).toFixed(2);
   simCur=b.dataset.c; document.querySelectorAll('#curSeg button').forEach(x=>x.setAttribute('aria-pressed',x===b)); render();
 }));
-$('chips').addEventListener('click',e=>{ const c=e.target.closest('.chip'); if(!c) return; const T=totals(), k=c.dataset.k;
+$('chips').addEventListener('click',e=>{ const c=e.target.closest('.chip'); if(!c) return; haptic(); const T=totals(), k=c.dataset.k;
   if(k==='clr'){ $('simVal').value=''; return render(); }
   const eur = k==='be' ? T.avg : T.cur*parseFloat(k); if(!eur) return;
   $('simVal').value=(simCur==='EUR'? eur : eur*T.curO.fx).toFixed(2); render(); });
@@ -619,7 +759,7 @@ function avNote(p){ return (p && (p.Note||p.Information||p['Error Message'])) ||
 $('updBtn').addEventListener('click', async ()=>{
   const btn=$('updBtn'); if(btn.classList.contains('spin')) return;
   if(!avKey){ toast("Primer posa la teva clau d'Alpha Vantage a Configuració."); $('setBtn').click(); return; }
-  btn.classList.add('spin');
+  btn.classList.add('spin'); haptic();
   try{
     let p1=await av({function:'TIME_SERIES_DAILY',symbol:'ASST',outputsize:'compact'});
     if(!p1['Time Series (Daily)']){ await sleep(2200); p1=await av({function:'TIME_SERIES_DAILY',symbol:'ASST',outputsize:'compact'}); }
@@ -637,7 +777,8 @@ $('updBtn').addEventListener('click', async ()=>{
       const o=have.get(d); if(o && Math.abs(+o.usd-usd)<5e-5 && (f.est || !o.fx_est)) continue;
       rows.push({user_id:user.id, data:d, usd:+usd.toFixed(4), fx:+f.fx.toFixed(5), eur:+(usd/f.fx).toFixed(4), fx_est:f.est, font:'Alpha Vantage'});
     }
-    if(rows.length){ const {error}=await sb.from('preus').upsert(rows); if(error){ toast("No s'han pogut desar els preus: "+error.message); return; } await loadData(); }
+    if(rows.length){ const {error}=await sb.from('preus').upsert(rows); if(error){ toast("No s'han pogut desar els preus: "+error.message); return; } chartMode='range'; await loadData(); flash(['hVal','tCur','tVal']); }
+    btn.classList.add('done'); haptic(14); setTimeout(()=>btn.classList.remove('done'),1600);
     const lastD=Object.keys(ts1).sort().pop();
     toast((rows.length? `Fet: ${rows.length} ${rows.length===1?'dia actualitzat':'dies actualitzats'}. ` : 'Ja estava al dia. ')+`Últim tancament: ${fd(lastD)} · ${fmtU.format(+ts1[lastD]['4. close'])}.`+(ts2?'':' (Canvi EUR/USD aproximat: '+(avNote(p2)||'no ha arribat')+')'));
   }catch(e){ toast("No s'ha pogut connectar amb Alpha Vantage. Comprova la connexió i torna-ho a provar."); }
@@ -654,9 +795,11 @@ async function loadData(){
   if(c.error||p.error){ toast("No s'han pogut carregar les dades: "+((c.error||p.error).message)); }
   buys=(c.data||[]).map(b=>({...b, valor:+b.valor, preu:+b.preu, comissio:+b.comissio, accions:+b.accions}));
   prices=p.data||[]; avKey=(g.data&&g.data.av_key)||'';
-  render();
+  render(); $('appView').classList.remove('loading');
 }
-function showApp(){ $('loginView').hidden=true; $('appView').hidden=false; $('tabbar').hidden=false; }
+function showApp(){ $('loginView').hidden=true; $('appView').hidden=false; $('tabbar').hidden=false;
+  let i=0; document.querySelectorAll('#appView .top, #vInici .hero, #vInici .tile, #vInici .chartcard, #vInici .updline, .bwrap .sectionhead, .bwrap .card.sum, .simwrap > *, .simres .tile').forEach(el=>{ el.classList.add('stg'); el.style.setProperty('--i', i++ % 12); });
+  requestAnimationFrame(()=>{ placeThumbs(); placeInd(); }); }
 function showLogin(msg){ $('appView').hidden=true; $('tabbar').hidden=true; $('loginView').hidden=false; if(msg){ $('lMsg').className='msg err'; $('lMsg').textContent=msg; } }
 $('loginForm').addEventListener('submit', async e=>{
   e.preventDefault(); $('lBtn').disabled=true; $('lMsg').textContent='';
@@ -681,7 +824,7 @@ document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==
   try{ $('lRem').checked = remember(); $('lEmail').value = localStorage.getItem('correu') || ''; }catch(e){}
   sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY, {auth:{persistSession:true, autoRefreshToken:true, storage}});
   const {data:{session}} = await sb.auth.getSession();
-  if(session){ user=session.user; showApp(); render(); await loadData(); } else showLogin();
+  if(session){ user=session.user; showApp(); await loadData(); } else showLogin();
 })();
 if('serviceWorker' in navigator) addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
