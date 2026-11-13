@@ -83,8 +83,9 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
 .pricerow{margin-top:12px;background:var(--surface);border-radius:16px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--accent) 45%,transparent)}
 .pr-l{display:flex;align-items:center;gap:10px}
 .pr-l > span:last-child{display:grid;gap:1px}
-.pr-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 var(--accent);animation:live 2.4s ease-out infinite}
-@keyframes live{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 60%,transparent)}70%{box-shadow:0 0 0 9px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.pr-dot{width:10px;height:10px;border-radius:50%;background:var(--muted);transition:background-color .4s}
+.is-live .pr-dot{background:var(--good);animation:live 2s ease-out infinite}
+@keyframes live{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--good) 60%,transparent)}70%{box-shadow:0 0 0 9px transparent}100%{box-shadow:0 0 0 0 transparent}}
 .pr-k{font-size:14px;font-weight:700}
 .pr-d{font-size:12px;color:var(--muted)}
 .pr-r{display:grid;justify-items:end;gap:1px}
@@ -401,7 +402,7 @@ body,.card,.tile,.bcard,.tabbar,.sheet,.ibtn,.seg,input.f,.bwrap,.simwrap,.login
     </section>
   </div>
 
-  <p class="muted" style="font-size:12px;margin:24px 8px 0">Preus de tancament: <a href="https://www.alphavantage.co/" style="color:inherit">Alpha Vantage</a> (des del 12/11/2026) i Yahoo Finance / Stoculator (abans), convertits a euros amb el canvi EUR/USD de cada dia.</p>
+  <p class="muted" style="font-size:12px;margin:24px 8px 0">Preu en directe: <a href="https://finnhub.io/" style="color:inherit">Finnhub</a>. Tancaments: <a href="https://www.alphavantage.co/" style="color:inherit">Alpha Vantage</a> (des del 12/11/2026) i Yahoo Finance / Stoculator (abans), convertits a euros amb el canvi EUR/USD de cada dia.</p>
 </div>
 
 <nav class="tabbar" id="tabbar" aria-label="Seccions" hidden>
@@ -432,7 +433,9 @@ body,.card,.tile,.bcard,.tabbar,.sheet,.ibtn,.seg,input.f,.bwrap,.simwrap,.login
 <form class="sheet" id="setSheet" hidden autocomplete="off" aria-labelledby="setTitle">
   <span class="grab"></span>
   <div class="sheethead"><h3 id="setTitle">Configuració</h3><button class="btn ghost" type="button" data-close style="min-height:40px">Tanca</button></div>
-  <label class="f" for="avKey">Clau d'API d'Alpha Vantage<input class="f" id="avKey" type="text" autocomplete="off" spellcheck="false" placeholder="La teva clau"></label>
+  <label class="f" for="fhKey">Clau d'API de Finnhub (preu en directe)<input class="f" id="fhKey" type="text" autocomplete="off" spellcheck="false" placeholder="La teva clau de Finnhub"></label>
+  <p class="muted" style="margin:-4px 0 0;font-size:12px">Gratuïta a <a href="https://finnhub.io/register" style="color:inherit">finnhub.io</a>. Dona l'últim preu d'ASST mentre el mercat és obert.</p>
+  <label class="f" for="avKey">Clau d'API d'Alpha Vantage (tancaments diaris)<input class="f" id="avKey" type="text" autocomplete="off" spellcheck="false" placeholder="La teva clau"></label>
   <p class="muted" style="margin:-4px 0 0;font-size:12px">Es guarda al teu compte (només la veus tu). La pots demanar gratis a <a href="https://www.alphavantage.co/support/#api-key" style="color:inherit">alphavantage.co</a>.</p>
   <div class="lbl">Tema</div>
   <div class="seg" role="group" aria-label="Tema" id="themeSeg">
@@ -482,7 +485,7 @@ function flash(ids){ ids.forEach(i=>{ const el=$(i); if(!el) return; const c=el.
 
 const CFG = window.CARTERA_CONFIG || {};
 let sb = null, user = null;
-let buys = [], prices = [], avKey = '';
+let buys = [], prices = [], avKey = '', fhKey = '', live = null, liveFx = null, liveT = null;
 let range = 90, chart = null, chartMode = 'first', listSig = '', simCur = 'EUR', simEur = null, editing = null, shTouched = false;
 
 // ---------- segmented thumbs ----------
@@ -536,7 +539,18 @@ function shares(b){ return b.accions>0 ? b.accions : calcShares(b.valor,b.comiss
 function series(){
   const m = new Map(HIST.map(([d,u,fx])=>[d,{eur:u/fx,usd:u,fx,est:false}]));
   prices.forEach(p=>m.set(p.data,{eur:+p.eur,usd:+p.usd,fx:+p.fx,est:!!p.fx_est}));
+  if(live){ const days=[...m.keys()].sort(), last=days[days.length-1];
+    if(live.day>=last) m.set(live.day,{eur:live.eur,usd:live.usd,fx:live.fx,est:live.fxEst,live:true,t:live.t,dp:live.dp}); }
   return [...m.entries()].sort((a,b)=>a[0]<b[0]?-1:1);
+}
+// New York calendar day of a timestamp (the trading day)
+const nyDay = ms => new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(ms));
+const hhmm = ms => new Intl.DateTimeFormat('ca-ES',{hour:'2-digit',minute:'2-digit'}).format(new Date(ms));
+function priceLabel(T){
+  const o=T.curO;
+  if(o.live){ const fresh = Date.now()-o.t < 20*60e3;
+    return { short: fresh? 'en directe' : `últim preu ${hhmm(o.t)}`, long: fresh? `En directe · ${hhmm(o.t)}` : `Últim preu · ${fds(T.curD)} ${hhmm(o.t)}`, fresh }; }
+  return { short: `tancament ${fds(T.curD)}`, long: `Tancament ${fd(T.curD)}`, fresh:false };
 }
 function fxOn(s,d){ let f=s[0][1].fx; for(const [k,v] of s){ if(k<=d) f=v.fx; else break; } return f; }
 function totals(){
@@ -555,8 +569,10 @@ function render(){
   $('hR').textContent = fmtP.format(T.r); $('hR').className = 'pill '+cls(T.pl);
   setNum('hPriceV', T.cur, v=>fmtE.format(v));
   $('hPriceU').textContent = (T.curO.est?'≈ ':'') + fmtU.format(T.curO.usd);
-  $('hPriceD').textContent = `Tancament ${fd(T.curD)}`;
-  $('tCurL').textContent = `Preu ASST · ${fds(T.curD)}`;
+  const PL = priceLabel(T);
+  $('hPriceD').textContent = PL.long + (T.curO.live && isFinite(T.curO.dp) ? ` · ${T.curO.dp>0?'+':''}${fmtN.format(T.curO.dp)} % avui` : '');
+  $('hPriceRow').classList.toggle('is-live', PL.fresh);
+  $('tCurL').textContent = `Preu ASST · ${PL.short}`;
   setNum('tCur', T.cur, v=>fmtE.format(v));
   $('tCurN').textContent = (T.curO.est?'≈ ':'') + fmtU.format(T.curO.usd);
   setNum('tVal', T.val, v=>fmtE.format(v)); $('tValN').textContent = `${fmtS.format(T.sh)} accions`;
@@ -568,7 +584,7 @@ function render(){
   setNum('tR', T.r, v=>fmtP.format(v), 'v sk '+cls(T.pl));
   const tone = T.pl>0?'var(--good)':T.pl<0?'var(--bad)':'var(--line)';
   ['tPLt','tRt'].forEach(i=>$(i).style.setProperty('--tone',tone));
-  $('updLine').textContent = `Últim tancament: ${fd(T.curD)}${T.curO.est?' (canvi EUR/USD aproximat)':''}.`;
+  $('updLine').textContent = (T.curO.live ? `Preu de Finnhub (${PL.long.toLowerCase()}), s'actualitza sol cada minut mentre tens l'app oberta.` : `Últim tancament: ${fd(T.curD)}.`) + (T.curO.est?' Canvi EUR/USD aproximat.':'');
 
   // purchases
   setNum('sInv', T.inv, v=>fmtE.format(v)); setNum('sVal', T.val, v=>fmtE.format(v));
@@ -576,19 +592,21 @@ function render(){
   const maxV = Math.max(1,...buys.map(b=>+b.valor));
   const desc = [...buys].sort((a,b)=>a.data<b.data?1:-1);
   const asc = [...buys].sort((a,b)=>a.data<b.data?-1:1);
-  const sig = JSON.stringify([buys.map(b=>[b.id,b.data,b.valor,b.preu,b.comissio,b.accions]), T.cur]);
-  const rebuild = sig!==listSig; listSig = sig;
+  const bsig = JSON.stringify(buys.map(b=>[b.id,b.data,b.valor,b.preu,b.comissio,b.accions]));
+  const sig = bsig + '|' + T.cur.toFixed(4);
+  const rebuild = sig!==listSig, restagger = !listSig.startsWith(bsig+'|'); listSig = sig;
+  const stg = restagger ? 'stg' : '';
   if(rebuild){
   $('bCaps').textContent = buys.length ? `${buys.length} ${buys.length===1?'compra':'compres'} · més recent primer` : '';
   $('blist').innerHTML = desc.length ? desc.map(b=>{
     const n=shares(b), d=n*T.cur-b.valor, sz=12+16*Math.sqrt(b.valor/maxV);
-    return `<button type="button" class="bcard stg" style="--i:${desc.indexOf(b)}" data-id="${b.id}" aria-label="Edita la compra del ${fd(b.data)}">
+    return `<button type="button" class="bcard ${stg}" style="--i:${desc.indexOf(b)}" data-id="${b.id}" aria-label="Edita la compra del ${fd(b.data)}">
       <span class="dot"><i style="width:${sz.toFixed(0)}px;height:${sz.toFixed(0)}px"></i></span>
       <span class="d">${fd(b.data)}</span><span class="r">${fmtE.format(b.valor)}</span>
       <span class="s">${fmtS.format(n)} acc. a ${fmtE.format(b.preu)}</span><span class="r ${cls(d)}" style="font-size:12px">${signE(d)}</span></button>`;
   }).join('') : '<div class="empty">Encara no hi ha compres. Prem «Afegeix» per posar la primera.</div>';
   $('btb').innerHTML = asc.map(b=>{ const n=shares(b), d=n*T.cur-b.valor, sz=10+12*Math.sqrt(b.valor/maxV);
-    return `<tr class="stg" style="--i:${asc.indexOf(b)}" data-id="${b.id}" tabindex="0"><td><span style="display:inline-flex;align-items:center;gap:10px"><i style="display:block;width:${sz.toFixed(0)}px;height:${sz.toFixed(0)}px;border-radius:50%;background:var(--accent)"></i>${fd(b.data)}</span></td><td>${fmtE.format(b.valor)}</td><td>${fmtE.format(b.preu)}</td><td>${fmtS.format(n)}</td><td>${fmtE.format(b.comissio)}</td><td class="${cls(d)}">${signE(d)}</td></tr>`; }).join('');
+    return `<tr class="${stg}" style="--i:${asc.indexOf(b)}" data-id="${b.id}" tabindex="0"><td><span style="display:inline-flex;align-items:center;gap:10px"><i style="display:block;width:${sz.toFixed(0)}px;height:${sz.toFixed(0)}px;border-radius:50%;background:var(--accent)"></i>${fd(b.data)}</span></td><td>${fmtE.format(b.valor)}</td><td>${fmtE.format(b.preu)}</td><td>${fmtS.format(n)}</td><td>${fmtE.format(b.comissio)}</td><td class="${cls(d)}">${signE(d)}</td></tr>`; }).join('');
   $('btf').innerHTML = buys.length ? `<tr><td>Total</td><td>${fmtE.format(T.inv)}</td><td>${fmtE.format(T.avg)}</td><td>${fmtS.format(T.sh)}</td><td>${fmtE.format(T.com)}</td><td class="${cls(T.pl)}">${signE(T.pl)}</td></tr>` : '';
   }
 
@@ -632,7 +650,7 @@ function externalTip(ctx){
   let html;
   if(it.datasetIndex===0){ const b=it.raw.b, n=shares(b), now=n*totals().cur;
     html=`<b>Compra · ${fd(b.data)}</b><span class="num">Invertit: ${fmtE.format(b.valor)}</span><span class="num">Preu: ${fmtE.format(b.preu)} (≈ ${fmtU.format(b.preu*it.raw.fx)})</span><span class="num">Accions: ${fmtS.format(n)}</span><span class="num ${cls(now-b.valor)}">Ara val: ${fmtE.format(now)} (${signE(now-b.valor)})</span>`;
-  } else { const r=it.raw; html=`<b>${fd(r.d)}</b><span class="num">Tancament: ${fmtE.format(r.y)}</span><span class="num">En dòlars: ${r.est?'≈ ':''}${fmtU.format(r.usd)}</span>`; }
+  } else { const r=it.raw; html=`<b>${fd(r.d)}${r.live?' · '+hhmm(r.t):''}</b><span class="num">${r.live?'Últim preu':'Tancament'}: ${fmtE.format(r.y)}</span><span class="num">En dòlars: ${r.est?'≈ ':''}${fmtU.format(r.usd)}</span>`; }
   el.innerHTML=html; el.style.opacity=1;
   const box=$('chartbox'), w=el.offsetWidth, h=el.offsetHeight;
   let x=t.caretX - w/2; x=Math.max(4, Math.min(box.clientWidth-w-4, x));
@@ -642,7 +660,7 @@ function externalTip(ctx){
 function drawChart(T, asc, maxV){
   const animMode = reduced() ? 'none' : chartMode; chartMode = 'none';
   const ink=cssv('--ink'), grid=cssv('--grid'), muted=cssv('--muted'), acc=cssv('--accent'), surf=cssv('--surface');
-  const line=T.s.map(([d,v])=>({x:ts(d),y:v.eur,usd:v.usd,est:v.est,d}));
+  const line=T.s.map(([d,v])=>({x:ts(d),y:v.eur,usd:v.usd,est:v.est,d,live:!!v.live,t:v.t}));
   const lastX=line[line.length-1].x, firstX=line[0].x, minX=range? Math.max(firstX,lastX-range*DAY) : firstX;
   const desk=isDesk();
   const bub=asc.map(b=>({x:ts(b.data),y:+b.preu,r:(desk?6:5)+(desk?13:11)*Math.sqrt(b.valor/maxV),b,fx:fxOn(T.s,b.data)}));
@@ -744,12 +762,12 @@ $('bDel').addEventListener('click', async ()=>{
 });
 
 // ---------- settings ----------
-$('setBtn').addEventListener('click',()=>{ $('avKey').value=avKey; $('setMsg').textContent=''; openSheet('setSheet'); });
+$('setBtn').addEventListener('click',()=>{ $('avKey').value=avKey; $('fhKey').value=fhKey; $('setMsg').textContent=''; openSheet('setSheet'); });
 $('setSheet').addEventListener('submit', async e=>{
-  e.preventDefault(); const k=$('avKey').value.trim();
-  const {error}=await sb.from('config').upsert({user_id:user.id, av_key:k});
-  if(error){ $('setMsg').className='msg err'; $('setMsg').textContent="No s'ha pogut desar: "+error.message; return; }
-  avKey=k; closeSheets(); toast('Configuració desada.');
+  e.preventDefault(); const k=$('avKey').value.trim(), f=$('fhKey').value.trim();
+  const {error}=await sb.from('config').upsert({user_id:user.id, av_key:k, fh_key:f});
+  if(error){ $('setMsg').className='msg err'; $('setMsg').textContent = /fh_key/.test(error.message) ? "Falta afegir la columna fh_key a Supabase (mira les instruccions)." : "No s'ha pogut desar: "+error.message; return; }
+  avKey=k; fhKey=f; closeSheets(); toast('Configuració desada.'); refreshLive(true);
 });
 $('logoutBtn').addEventListener('click', async ()=>{ await sb.auth.signOut(); location.reload(); });
 
@@ -773,13 +791,17 @@ async function av(params){
 function avNote(p){ return (p && (p.Note||p.Information||p['Error Message'])) || ''; }
 $('updBtn').addEventListener('click', async ()=>{
   const btn=$('updBtn'); if(btn.classList.contains('spin')) return;
-  if(!avKey){ toast("Primer posa la teva clau d'Alpha Vantage a Configuració."); $('setBtn').click(); return; }
+  if(!avKey && !fhKey){ toast("Primer posa les teves claus de Finnhub i Alpha Vantage a Configuració."); $('setBtn').click(); return; }
   btn.classList.add('spin'); haptic();
+  if(fhKey){ liveFx=null; try{ localStorage.removeItem('fxLive'); }catch(e){} }
+  const gotLive = fhKey ? await refreshLive(true) : false;
+  if(!avKey){ btn.classList.remove('spin'); if(gotLive){ btn.classList.add('done'); haptic(14); setTimeout(()=>btn.classList.remove('done'),1600); const T=totals(); toast(`Preu actualitzat: ${fmtU.format(T.curO.usd)} (${priceLabel(T).short}).`); } return; }
   try{
+    if(gotLive) await sleep(1300); // Alpha Vantage free: about 1 request per second
     let p1=await av({function:'TIME_SERIES_DAILY',symbol:'ASST',outputsize:'compact'});
     if(!p1['Time Series (Daily)']){ await sleep(2200); p1=await av({function:'TIME_SERIES_DAILY',symbol:'ASST',outputsize:'compact'}); }
     const ts1=p1['Time Series (Daily)'];
-    if(!ts1){ toast("Alpha Vantage no ha donat preus: "+(avNote(p1)||'torna-ho a provar d\'aquí a un minut.')); return; }
+    if(!ts1){ if(!gotLive) toast("Alpha Vantage no ha donat preus: "+(avNote(p1)||'torna-ho a provar d\'aquí a un minut.')); else { btn.classList.add('done'); setTimeout(()=>btn.classList.remove('done'),1600); const T=totals(); toast(`Preu actualitzat: ${fmtU.format(T.curO.usd)} (${priceLabel(T).short}).`); } return; }
     await sleep(1500);
     let p2=null; try{ p2=await av({function:'FX_DAILY',from_symbol:'EUR',to_symbol:'USD'}); if(!p2['Time Series FX (Daily)']){ await sleep(2200); p2=await av({function:'FX_DAILY',from_symbol:'EUR',to_symbol:'USD'}); } }catch(e){}
     const ts2=p2 && p2['Time Series FX (Daily)'];
@@ -795,8 +817,10 @@ $('updBtn').addEventListener('click', async ()=>{
     if(rows.length){ const {error}=await sb.from('preus').upsert(rows); if(error){ toast("No s'han pogut desar els preus: "+error.message); return; } chartMode='range'; await loadData(); flash(['hPriceV','hVal','tCur','tVal']); }
     btn.classList.add('done'); haptic(14); setTimeout(()=>btn.classList.remove('done'),1600);
     const lastD=Object.keys(ts1).sort().pop();
-    toast((rows.length? `Fet: ${rows.length} ${rows.length===1?'dia actualitzat':'dies actualitzats'}. ` : 'Ja estava al dia. ')+`Últim tancament: ${fd(lastD)} · ${fmtU.format(+ts1[lastD]['4. close'])}.`+(ts2?'':' (Canvi EUR/USD aproximat: '+(avNote(p2)||'no ha arribat')+')'));
-  }catch(e){ toast("No s'ha pogut connectar amb Alpha Vantage. Comprova la connexió i torna-ho a provar."); }
+    const T=totals();
+    toast(gotLive ? `Preu actualitzat: ${fmtU.format(T.curO.usd)} (${priceLabel(T).short}).`+(rows.length?` Tancaments desats: ${rows.length}.`:'')
+                  : (rows.length? `Fet: ${rows.length} ${rows.length===1?'dia actualitzat':'dies actualitzats'}. ` : 'Tancaments al dia. ')+`Últim tancament: ${fd(lastD)} · ${fmtU.format(+ts1[lastD]['4. close'])}.`+(fhKey?'':' Per tenir el preu en directe, afegeix la clau de Finnhub a Configuració.'));
+  }catch(e){ if(!gotLive) toast("No s'ha pogut connectar amb Alpha Vantage. Comprova la connexió i torna-ho a provar."); }
   finally{ btn.classList.remove('spin'); }
 });
 
@@ -805,13 +829,42 @@ async function loadData(){
   const [c,p,g]=await Promise.all([
     sb.from('compres').select('*').order('data'),
     sb.from('preus').select('*').order('data'),
-    sb.from('config').select('av_key').maybeSingle()
+    sb.from('config').select('*').maybeSingle()
   ]);
   if(c.error||p.error){ toast("No s'han pogut carregar les dades: "+((c.error||p.error).message)); }
   buys=(c.data||[]).map(b=>({...b, valor:+b.valor, preu:+b.preu, comissio:+b.comissio, accions:+b.accions}));
-  prices=p.data||[]; avKey=(g.data&&g.data.av_key)||'';
+  prices=p.data||[]; avKey=(g.data&&g.data.av_key)||''; fhKey=(g.data&&g.data.fh_key)||'';
   render(); $('appView').classList.remove('loading');
+  refreshLive();
 }
+
+// ---------- live price (Finnhub) + live EUR/USD (Alpha Vantage, at most once an hour) ----------
+let liveBusy=false, liveTimer=null;
+function knownFx(){ const s=[...HIST.map(h=>[h[0],h[2]]), ...prices.filter(p=>!p.fx_est&&+p.fx>0).map(p=>[p.data,+p.fx])].sort((a,b)=>a[0]<b[0]?-1:1); return s[s.length-1][1]; }
+async function getLiveFx(){
+  if(liveFx && Date.now()-liveT < 60*60e3) return {fx:liveFx, est:false};
+  try{ const c=JSON.parse(localStorage.getItem('fxLive')||'null'); if(c && Date.now()-c.t < 60*60e3){ liveFx=c.fx; liveT=c.t; return {fx:c.fx, est:false}; } }catch(e){}
+  if(avKey){ try{ const p=await av({function:'CURRENCY_EXCHANGE_RATE',from_currency:'EUR',to_currency:'USD'});
+      const r=p && p['Realtime Currency Exchange Rate'] && +p['Realtime Currency Exchange Rate']['5. Exchange Rate'];
+      if(r>0){ liveFx=r; liveT=Date.now(); try{ localStorage.setItem('fxLive',JSON.stringify({fx:r,t:liveT})); }catch(e){} return {fx:r, est:false}; } }catch(e){} }
+  return {fx:knownFx(), est:true};
+}
+async function refreshLive(loud){
+  if(!fhKey || liveBusy) return false; liveBusy=true;
+  try{
+    const r=await fetch('https://finnhub.io/api/v1/quote?'+new URLSearchParams({symbol:'ASST', token:fhKey}));
+    if(!r.ok){ if(loud) toast(r.status===401||r.status===403 ? 'La clau de Finnhub no és vàlida. Revisa-la a Configuració.' : `Finnhub no respon (error ${r.status}).`); return false; }
+    const q=await r.json();
+    if(!(q && q.c>0 && q.t)){ if(loud) toast('Finnhub no ha donat cap preu per a ASST.'); return false; }
+    const f=await getLiveFx(), prev=live && live.usd;
+    live={usd:q.c, dp:q.dp, t:q.t*1000, day:nyDay(q.t*1000), fx:f.fx, fxEst:f.est, eur:q.c/f.fx};
+    render(); if(prev!==undefined && prev!==null && prev!==q.c) flash(['hPriceV','tCur']);
+    return true;
+  }catch(e){ if(loud) toast("No s'ha pogut connectar amb Finnhub. Comprova la connexió."); return false; }
+  finally{ liveBusy=false; }
+}
+function startLiveTimer(){ clearInterval(liveTimer); liveTimer=setInterval(()=>{ if(document.visibilityState==='visible' && user) refreshLive(); }, 60e3); }
+startLiveTimer();
 function showApp(){ $('loginView').hidden=true; $('appView').hidden=false; $('tabbar').hidden=false;
   let i=0; document.querySelectorAll('#appView .top, #vInici .hero, #vInici .tile, #vInici .chartcard, #vInici .updline, .bwrap .sectionhead, .bwrap .card.sum, .simwrap > *, .simres .tile').forEach(el=>{ el.classList.add('stg'); el.style.setProperty('--i', i++ % 12); });
   requestAnimationFrame(()=>{ placeThumbs(); placeInd(); }); }
