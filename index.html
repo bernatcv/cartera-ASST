@@ -769,7 +769,20 @@ $('setSheet').addEventListener('submit', async e=>{
   if(error){ $('setMsg').className='msg err'; $('setMsg').textContent = /fh_key/.test(error.message) ? "Falta afegir la columna fh_key a Supabase (mira les instruccions)." : "No s'ha pogut desar: "+error.message; return; }
   avKey=k; fhKey=f; closeSheets(); toast('Configuració desada.'); refreshLive(true);
 });
-$('logoutBtn').addEventListener('click', async ()=>{ await sb.auth.signOut(); location.reload(); });
+function wipeSession(){ try{ [localStorage, sessionStorage].forEach(st=>Object.keys(st).filter(k=>k.startsWith('sb-')).forEach(k=>st.removeItem(k))); localStorage.removeItem('fxLive'); }catch(e){} }
+function toLogin(){
+  if(typeof liveTimer!=='undefined') clearInterval(liveTimer);
+  user=null; buys=[]; prices=[]; live=null; liveFx=null; avKey=''; fhKey=''; listSig='';
+  closeSheets(); $('lPass').value=''; $('lMsg').textContent='';
+  setTimeout(()=>{ showLogin(); $('appView').classList.add('loading'); },320);
+}
+$('logoutBtn').addEventListener('click', async ()=>{
+  const b=$('logoutBtn'); b.disabled=true; b.textContent='Tancant la sessió…';
+  // local sign-out: works even without connection, and removes the saved session from this device
+  try{ await sb.auth.signOut({scope:'local'}); }catch(e){}
+  wipeSession(); toLogin();
+  setTimeout(()=>{ b.disabled=false; b.textContent='Tanca la sessió'; toast('Sessió tancada.'); },340);
+});
 
 // ---------- simulator ----------
 let simT; $('simVal').addEventListener('input',()=>{ clearTimeout(simT); simT=setTimeout(render,120); });
@@ -876,7 +889,7 @@ $('loginForm').addEventListener('submit', async e=>{
   const {data,error}=await sb.auth.signInWithPassword({email:$('lEmail').value.trim(), password:$('lPass').value});
   $('lBtn').disabled=false;
   if(error){ $('lMsg').className='msg err'; $('lMsg').textContent = /invalid/i.test(error.message)? 'Correu o contrasenya incorrectes.' : "No s'ha pogut entrar: "+error.message; return; }
-  user=data.user; showApp(); await loadData();
+  user=data.user; startLiveTimer(); showApp(); await loadData();
 });
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible' && user) loadData(); });
 
@@ -891,6 +904,7 @@ document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==
   };
   try{ $('lRem').checked = remember(); $('lEmail').value = localStorage.getItem('correu') || ''; }catch(e){}
   sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY, {auth:{persistSession:true, autoRefreshToken:true, storage}});
+  sb.auth.onAuthStateChange((ev)=>{ if(ev==='SIGNED_OUT' && user) toLogin(); });
   const {data:{session}} = await sb.auth.getSession();
   if(session){ user=session.user; showApp(); await loadData(); } else showLogin();
 })();
