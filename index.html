@@ -94,7 +94,7 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
 .plrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--mono);font-weight:600}
 .chartcard{margin-top:14px;display:grid;gap:10px}
 .seg{display:flex;background:var(--bg);border-radius:10px;padding:3px;gap:2px}
-.seg button{flex:1;min-height:34px;border:0;border-radius:8px;background:transparent;color:var(--muted);font-weight:600;font-size:13px;padding:0 10px}
+.seg button{flex:1;min-height:34px;border:0;border-radius:8px;background:transparent;color:var(--muted);font-weight:600;font-size:13px;padding:0 8px}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.15)}
 .chartbox{position:relative;height:240px;touch-action:pan-y}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11px;color:var(--muted);padding:0 4px}
@@ -103,6 +103,7 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
 .tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:12px;box-shadow:0 6px 20px rgba(0,0,0,.14);white-space:nowrap;z-index:5;transition:opacity .1s}
 .tip b{display:block;font-size:13px;margin-bottom:2px}
 .tip .num{display:block}
+.daynote{position:absolute;left:12px;right:12px;bottom:34px;text-align:center;font-size:12px;color:var(--muted);background:color-mix(in srgb,var(--surface) 85%,transparent);border-radius:10px;padding:6px 10px;pointer-events:none;animation:fadeIn .4s var(--ease)}
 .tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
 .tile{background:var(--surface);border-radius:14px;padding:12px 14px;display:grid;gap:2px;min-width:0}
 .tile .v{font-family:var(--mono);font-size:17px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -176,7 +177,7 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
   .tile.m-only{display:none}
   .chartcard{margin:0;padding:20px 22px;border:1px solid var(--line)}
   .chartbox{height:380px}
-  .seg{max-width:360px;justify-self:end}
+  .seg{max-width:440px;justify-self:end}
   .chartrow{display:flex;justify-content:space-between;align-items:center;gap:12px}
   .chartrow h2{margin:0;font-size:18px}
   .sectionhead h2{font-size:18px}
@@ -336,15 +337,17 @@ body,.card,.tile,.bcard,.tabbar,.sheet,.ibtn,.seg,input.f,.bwrap,.simwrap,.login
     <div class="card chartcard">
       <div class="chartrow"><h2>Preu d'ASST i les teves compres</h2>
         <div class="seg" role="group" aria-label="Període" id="rng">
+          <button type="button" data-r="1" aria-pressed="false">1D</button>
+          <button type="button" data-r="7" aria-pressed="false">1S</button>
           <button type="button" data-r="30" aria-pressed="false">1M</button>
           <button type="button" data-r="90" aria-pressed="true">3M</button>
           <button type="button" data-r="182" aria-pressed="false">6M</button>
           <button type="button" data-r="0" aria-pressed="false">Tot</button>
         </div>
       </div>
-      <div class="chartbox" id="chartbox"><canvas id="chart" aria-label="Preu d'ASST en euros amb les teves compres marcades"></canvas><div class="tip" id="tip" style="opacity:0"></div></div>
+      <div class="chartbox" id="chartbox"><canvas id="chart" aria-label="Preu d'ASST en euros amb les teves compres marcades"></canvas><div class="tip" id="tip" style="opacity:0"></div><div class="daynote" id="dayNote" hidden></div></div>
       <div class="legend">
-        <span><i class="sw-l"></i>Preu</span><span><i class="sw-a"></i>El teu preu mitjà</span><span><i class="sw-d"></i>Compres (mida = import)</span><span id="lgSim" hidden><i class="sw-s"></i>Preu suposat</span>
+        <span><i class="sw-l"></i>Preu</span><span id="lgAvg"><i class="sw-a"></i>El teu preu mitjà</span><span id="lgBuy"><i class="sw-d"></i>Compres (mida = import)</span><span id="lgSim" hidden><i class="sw-s"></i>Preu suposat</span><span id="lgPc" hidden><i class="sw-a"></i>Tancament anterior</span>
       </div>
     </div>
     <div class="updline" id="updLine"></div>
@@ -543,6 +546,13 @@ function series(){
     if(live.day>=last) m.set(live.day,{eur:live.eur,usd:live.usd,fx:live.fx,est:live.fxEst,live:true,t:live.t,dp:live.dp}); }
   return [...m.entries()].sort((a,b)=>a[0]<b[0]?-1:1);
 }
+// Intraday points collected while the app is open (free APIs give no intraday history)
+function loadTicks(day){ try{ return JSON.parse(localStorage.getItem('ticks-'+day)||'[]'); }catch(e){ return []; } }
+function saveTick(day, p){ try{ const a=loadTicks(day); if(!a.length || a[a.length-1].t!==p.t){ a.push(p); a.sort((x,y)=>x.t-y.t); }
+    localStorage.setItem('ticks-'+day, JSON.stringify(a.slice(-800)));
+    Object.keys(localStorage).filter(k=>k.startsWith('ticks-') && k<'ticks-'+day).sort().slice(0,-3).forEach(k=>localStorage.removeItem(k)); }catch(e){} }
+function nyTime(day,h,m){ const [y,mo,d]=day.split('-').map(Number); const g=Date.UTC(y,mo-1,d,h+5,m);
+  const hNY=+new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',hour:'2-digit',hourCycle:'h23'}).format(new Date(g)); return g-(hNY-h)*3600e3; }
 // New York calendar day of a timestamp (the trading day)
 const nyDay = ms => new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(ms));
 const hhmm = ms => new Intl.DateTimeFormat('ca-ES',{hour:'2-digit',minute:'2-digit'}).format(new Date(ms));
@@ -650,7 +660,7 @@ function externalTip(ctx){
   let html;
   if(it.datasetIndex===0){ const b=it.raw.b, n=shares(b), now=n*totals().cur;
     html=`<b>Compra · ${fd(b.data)}</b><span class="num">Invertit: ${fmtE.format(b.valor)}</span><span class="num">Preu: ${fmtE.format(b.preu)} (≈ ${fmtU.format(b.preu*it.raw.fx)})</span><span class="num">Accions: ${fmtS.format(n)}</span><span class="num ${cls(now-b.valor)}">Ara val: ${fmtE.format(now)} (${signE(now-b.valor)})</span>`;
-  } else { const r=it.raw; html=`<b>${fd(r.d)}${r.live?' · '+hhmm(r.t):''}</b><span class="num">${r.live?'Últim preu':'Tancament'}: ${fmtE.format(r.y)}</span><span class="num">En dòlars: ${r.est?'≈ ':''}${fmtU.format(r.usd)}</span>`; }
+  } else { const r=it.raw; html=`<b>${r.intra ? (r.open?'Obertura · ':'')+hhmm(r.t) : fd(r.d)+(r.live?' · '+hhmm(r.t):'')}</b><span class="num">${r.intra?'Preu':(r.live?'Últim preu':'Tancament')}: ${fmtE.format(r.y)}</span><span class="num">En dòlars: ${r.est?'≈ ':''}${fmtU.format(r.usd)}</span>`; }
   el.innerHTML=html; el.style.opacity=1;
   const box=$('chartbox'), w=el.offsetWidth, h=el.offsetHeight;
   let x=t.caretX - w/2; x=Math.max(4, Math.min(box.clientWidth-w-4, x));
@@ -660,19 +670,40 @@ function externalTip(ctx){
 function drawChart(T, asc, maxV){
   const animMode = reduced() ? 'none' : chartMode; chartMode = 'none';
   const ink=cssv('--ink'), grid=cssv('--grid'), muted=cssv('--muted'), acc=cssv('--accent'), surf=cssv('--surface');
-  const line=T.s.map(([d,v])=>({x:ts(d),y:v.eur,usd:v.usd,est:v.est,d,live:!!v.live,t:v.t}));
-  const lastX=line[line.length-1].x, firstX=line[0].x, minX=range? Math.max(firstX,lastX-range*DAY) : firstX;
-  const desk=isDesk();
-  const bub=asc.map(b=>({x:ts(b.data),y:+b.preu,r:(desk?6:5)+(desk?13:11)*Math.sqrt(b.valor/maxV),b,fx:fxOn(T.s,b.data)}));
-  const vis=line.filter(p=>p.x>=minX).map(p=>p.y).concat(bub.filter(p=>p.x>=minX).map(p=>p.y)); if(T.avg) vis.push(T.avg); if(simEur!=null) vis.push(simEur);
+  const desk=isDesk(), dayMode = range===1;
+  let line, lastX, minX, maxX, bub, vis, pcEur=null, xTick;
+  if(dayMode){
+    // 1D: today's session (or the last one) from the prices the app has collected, plus the open and the previous close
+    const day = live ? live.day : T.curD, fx = live ? live.fx : T.curO.fx;
+    const open = nyTime(day,9,30), close = nyTime(day,16,0);
+    const ticks = loadTicks(day).filter(p=>p.t>=open-60e3 && p.t<=close+10*60e3);
+    line = ticks.map(p=>({x:p.t,y:p.eur,usd:p.usd,t:p.t,d:day,intra:true}));
+    if(live && live.day===day && live.o>0 && !line.some(p=>p.x<=open+60e3)) line.unshift({x:open,y:live.o/fx,usd:live.o,t:open,d:day,intra:true,open:true});
+    if(live && live.pc>0) pcEur = live.pc/fx;
+    minX=open; maxX=close; lastX=close;
+    bub=[]; vis=line.map(p=>p.y); if(pcEur) vis.push(pcEur); if(simEur!=null) vis.push(simEur); if(!vis.length) vis.push(T.cur);
+    xTick=v=>hhmm(v);
+    const nt=$('dayNote'); nt.hidden = line.length>2;
+    nt.textContent = !fhKey ? "Per veure el dia en directe, afegeix la clau de Finnhub a Configuració." :
+      line.length ? `La línia es construeix amb els preus que l'app rep mentre és oberta (cada minut).` : "Encara no hi ha preus d'aquesta sessió.";
+  } else {
+    $('dayNote').hidden = true;
+    line=T.s.map(([d,v])=>({x:ts(d),y:v.eur,usd:v.usd,est:v.est,d,live:!!v.live,t:v.t}));
+    lastX=line[line.length-1].x; const firstX=line[0].x; minX=range? Math.max(firstX,lastX-range*DAY) : firstX; maxX=lastX+DAY*1.5;
+    bub=asc.map(b=>({x:ts(b.data),y:+b.preu,r:(desk?6:5)+(desk?13:11)*Math.sqrt(b.valor/maxV),b,fx:fxOn(T.s,b.data)}));
+    vis=line.filter(p=>p.x>=minX).map(p=>p.y).concat(bub.filter(p=>p.x>=minX).map(p=>p.y)); if(T.avg) vis.push(T.avg); if(simEur!=null) vis.push(simEur);
+    xTick=v=>{const d=new Date(v);return `${d.getUTCDate()}/${d.getUTCMonth()+1}`;};
+    minX = minX - DAY*.5;
+  }
+  $('lgAvg').hidden = dayMode; $('lgBuy').hidden = dayMode; $('lgPc').hidden = !(dayMode && pcEur);
   const lo=Math.min(...vis), hi=Math.max(...vis), pad=(hi-lo)*.12||1;
   const data={datasets:[
     {type:'bubble',label:'Compres',data:bub,backgroundColor:acc+'EB',borderColor:surf,borderWidth:1.5,hoverBorderColor:ink,hoverBorderWidth:2.5,hoverRadius:4,order:0,
       animations: animMode==='none' ? {} : {radius:{from:0,duration:700,easing:'easeOutBack',delay:(c)=>c.type==='data'? (animMode==='first'?650:200)+c.dataIndex*110 : 0}}},
-    {type:'line',label:'Preu',data:line,borderColor:ink,borderWidth:1.8,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:ink,pointHoverBorderColor:surf,pointHoverBorderWidth:2,tension:0,order:2,
+    {type:'line',label:'Preu',data:line,borderColor:ink,borderWidth:1.8,pointRadius:(c)=> dayMode && line.length<=2 ? 4 : 0,pointBackgroundColor:ink,pointHoverRadius:5,pointHoverBackgroundColor:ink,pointHoverBorderColor:surf,pointHoverBorderWidth:2,tension:0,order:2,
       fill:'origin',backgroundColor:(c)=>{const {ctx,chartArea}=c.chart; if(!chartArea) return 'transparent'; const g=ctx.createLinearGradient(0,chartArea.top,0,chartArea.bottom); g.addColorStop(0,ink+'1A'); g.addColorStop(1,ink+'00'); return g;}},
-    {type:'line',label:'Mitjà',data:T.avg?[{x:minX,y:T.avg},{x:lastX+DAY,y:T.avg}]:[],borderColor:muted,borderWidth:1.5,borderDash:[2,4],pointRadius:0,pointHoverRadius:0,order:1},
-    {type:'line',label:'Suposat',data:simEur!=null?[{x:minX,y:simEur},{x:lastX+DAY,y:simEur}]:[],borderColor:acc,borderWidth:2,borderDash:[6,4],pointRadius:0,pointHoverRadius:0,order:1}
+    {type:'line',label:'Mitjà',data: dayMode ? (pcEur?[{x:minX,y:pcEur},{x:maxX,y:pcEur}]:[]) : (T.avg?[{x:minX,y:T.avg},{x:lastX+DAY,y:T.avg}]:[]),borderColor:muted,borderWidth:1.5,borderDash:[2,4],pointRadius:0,pointHoverRadius:0,order:1},
+    {type:'line',label:'Suposat',data:simEur!=null?[{x:minX,y:simEur},{x:maxX,y:simEur}]:[],borderColor:acc,borderWidth:2,borderDash:[6,4],pointRadius:0,pointHoverRadius:0,order:1}
   ]};
   const options={responsive:true,maintainAspectRatio:false,
     animation: animMode==='none' ? false : {duration: animMode==='first'?900:550, easing:'easeOutQuart'},
@@ -680,9 +711,9 @@ function drawChart(T, asc, maxV){
     events:['mousemove','mouseout','click','touchstart','touchmove','touchend'],
     interaction:{mode:'cartera',intersect:false}, layout:{padding:{top:16,right:desk?12:4}},
     scales:{
-      x:{type:'linear',min:minX-DAY*.5,max:lastX+DAY*1.5,grid:{display:false},border:{color:grid},
-        ticks:{color:muted,font:{family:'IBM Plex Mono',size:11},maxRotation:0,maxTicksLimit:desk?10:5,callback:v=>{const d=new Date(v);return `${d.getUTCDate()}/${d.getUTCMonth()+1}`;}}},
-      y:{min:Math.floor(lo-pad),max:Math.ceil(hi+pad),grid:{color:grid},border:{display:false},ticks:{color:muted,font:{family:'IBM Plex Mono',size:11},maxTicksLimit:6,callback:v=>v+' €'}}
+      x:{type:'linear',min:minX,max:maxX,grid:{display:false},border:{color:grid},
+        ticks:{color:muted,font:{family:'IBM Plex Mono',size:11},maxRotation:0,maxTicksLimit:desk?10:5,callback:xTick}},
+      y:{min: dayMode? +(lo-pad).toFixed(2) : Math.floor(lo-pad), max: dayMode? +(hi+pad).toFixed(2) : Math.ceil(hi+pad),grid:{color:grid},border:{display:false},ticks:{color:muted,font:{family:'IBM Plex Mono',size:11},maxTicksLimit:6,callback:v=> dayMode ? fmtN.format(v)+' €' : v+' €'}}
     },
     plugins:{legend:{display:false},tooltip:{enabled:false,external:externalTip}}
   };
@@ -870,7 +901,8 @@ async function refreshLive(loud){
     const q=await r.json();
     if(!(q && q.c>0 && q.t)){ if(loud) toast('Finnhub no ha donat cap preu per a ASST.'); return false; }
     const f=await getLiveFx(), prev=live && live.usd;
-    live={usd:q.c, dp:q.dp, t:q.t*1000, day:nyDay(q.t*1000), fx:f.fx, fxEst:f.est, eur:q.c/f.fx};
+    live={usd:q.c, dp:q.dp, o:q.o, pc:q.pc, t:q.t*1000, day:nyDay(q.t*1000), fx:f.fx, fxEst:f.est, eur:q.c/f.fx};
+    saveTick(live.day, {t:live.t, usd:q.c, eur:q.c/f.fx});
     render(); if(prev!==undefined && prev!==null && prev!==q.c) flash(['hPriceV','tCur']);
     return true;
   }catch(e){ if(loud) toast("No s'ha pogut connectar amb Finnhub. Comprova la connexió."); return false; }
