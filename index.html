@@ -80,6 +80,16 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
 .hero .big{font-family:var(--mono);font-size:38px;font-weight:600;letter-spacing:-.02em}
 .pill{font-family:var(--mono);font-size:12px;font-weight:600;border-radius:999px;padding:2px 8px}
 .pill.neg{background:var(--bad-bg)} .pill.pos{background:var(--good-bg)}
+.pricerow{margin-top:12px;background:var(--surface);border-radius:16px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--accent) 45%,transparent)}
+.pr-l{display:flex;align-items:center;gap:10px}
+.pr-l > span:last-child{display:grid;gap:1px}
+.pr-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 var(--accent);animation:live 2.4s ease-out infinite}
+@keyframes live{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 60%,transparent)}70%{box-shadow:0 0 0 9px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.pr-k{font-size:14px;font-weight:700}
+.pr-d{font-size:12px;color:var(--muted)}
+.pr-r{display:grid;justify-items:end;gap:1px}
+.pr-v{font-family:var(--mono);font-size:24px;font-weight:600;letter-spacing:-.01em}
+.pr-u{font-family:var(--mono);font-size:13px;color:var(--muted)}
 .plrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--mono);font-weight:600}
 .chartcard{margin-top:14px;display:grid;gap:10px}
 .seg{display:flex;background:var(--bg);border-radius:10px;padding:3px;gap:2px}
@@ -307,7 +317,10 @@ body,.card,.tile,.bcard,.tabbar,.sheet,.ibtn,.seg,input.f,.bwrap,.simwrap,.login
       <span class="lbl" style="font-size:13px">Valor de la cartera</span>
       <span class="big sk" id="hVal">–</span>
       <div class="plrow"><span id="hPL" class="sk">–</span><span class="pill" id="hR">–</span></div>
-      <span class="num muted" style="font-size:12px;margin-top:4px" id="hPrice">–</span>
+      <div class="pricerow" id="hPriceRow">
+        <div class="pr-l"><span class="pr-dot" aria-hidden="true"></span><span><span class="pr-k">Preu ASST</span><span class="pr-d" id="hPriceD">–</span></span></div>
+        <div class="pr-r"><span class="pr-v sk" id="hPriceV">–</span><span class="pr-u" id="hPriceU">–</span></div>
+      </div>
     </div>
     <div class="tiles">
       <div class="tile d-only"><span class="lbl" id="tCurL">Preu ASST</span><span class="v sk" id="tCur">–</span><span class="n" id="tCurN">–</span></div>
@@ -540,7 +553,9 @@ function render(){
   setNum('hVal', T.val, v=>fmtE.format(v));
   setNum('hPL', T.pl, signE, 'sk '+cls(T.pl));
   $('hR').textContent = fmtP.format(T.r); $('hR').className = 'pill '+cls(T.pl);
-  $('hPrice').textContent = `ASST ${fmtE.format(T.cur)} · ${fmtU.format(T.curO.usd)} · tancament ${fds(T.curD)}`;
+  setNum('hPriceV', T.cur, v=>fmtE.format(v));
+  $('hPriceU').textContent = (T.curO.est?'≈ ':'') + fmtU.format(T.curO.usd);
+  $('hPriceD').textContent = `Tancament ${fd(T.curD)}`;
   $('tCurL').textContent = `Preu ASST · ${fds(T.curD)}`;
   setNum('tCur', T.cur, v=>fmtE.format(v));
   $('tCurN').textContent = (T.curO.est?'≈ ':'') + fmtU.format(T.curO.usd);
@@ -777,7 +792,7 @@ $('updBtn').addEventListener('click', async ()=>{
       const o=have.get(d); if(o && Math.abs(+o.usd-usd)<5e-5 && (f.est || !o.fx_est)) continue;
       rows.push({user_id:user.id, data:d, usd:+usd.toFixed(4), fx:+f.fx.toFixed(5), eur:+(usd/f.fx).toFixed(4), fx_est:f.est, font:'Alpha Vantage'});
     }
-    if(rows.length){ const {error}=await sb.from('preus').upsert(rows); if(error){ toast("No s'han pogut desar els preus: "+error.message); return; } chartMode='range'; await loadData(); flash(['hVal','tCur','tVal']); }
+    if(rows.length){ const {error}=await sb.from('preus').upsert(rows); if(error){ toast("No s'han pogut desar els preus: "+error.message); return; } chartMode='range'; await loadData(); flash(['hPriceV','hVal','tCur','tVal']); }
     btn.classList.add('done'); haptic(14); setTimeout(()=>btn.classList.remove('done'),1600);
     const lastD=Object.keys(ts1).sort().pop();
     toast((rows.length? `Fet: ${rows.length} ${rows.length===1?'dia actualitzat':'dies actualitzats'}. ` : 'Ja estava al dia. ')+`Últim tancament: ${fd(lastD)} · ${fmtU.format(+ts1[lastD]['4. close'])}.`+(ts2?'':' (Canvi EUR/USD aproximat: '+(avNote(p2)||'no ha arribat')+')'));
