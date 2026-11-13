@@ -1,0 +1,16 @@
+{
+  "name": "Cartera ASST",
+  "short_name": "ASST",
+  "description": "Seguiment de la meva cartera d'accions ASST (Strive)",
+  "lang": "ca",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F3F4F6",
+  "theme_color": "#15171C",
+  "icons": [
+    { "src": "icones/icona-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icones/icona-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icones/icona-mask-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
