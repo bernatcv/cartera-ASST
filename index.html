@@ -104,6 +104,32 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
 .tip b{display:block;font-size:13px;margin-bottom:2px}
 .tip .num{display:block}
 .daynote{position:absolute;left:12px;right:12px;bottom:34px;text-align:center;font-size:12px;color:var(--muted);background:color-mix(in srgb,var(--surface) 85%,transparent);border-radius:10px;padding:6px 10px;pointer-events:none;animation:fadeIn .4s var(--ease)}
+:root{--asst-c:#2F5BEA;--btc-c:#F7931A}
+:root[data-theme="dark"]{--asst-c:#7D9BFF}
+.pagenav{display:none}
+.duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.coin{background:var(--surface);border-radius:16px;padding:12px 14px;display:grid;gap:2px;min-width:0;box-shadow:inset 0 3px 0 var(--c)}
+.coin .nm{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700}
+.coin .nm i{width:10px;height:10px;border-radius:50%;background:var(--c)}
+.coin .v{font-family:var(--mono);font-size:19px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.coin .u{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.coin .r{font-family:var(--mono);font-size:15px;font-weight:600;margin-top:4px}
+.coin .s{font-size:11px;color:var(--muted)}
+.band{margin-top:10px;padding:11px 14px;border-radius:14px;background:var(--surface);display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px}
+.band b{font-family:var(--mono)}
+.duo .band{grid-column:1/-1;margin-top:0}
+#bBand1{display:none}
+#bDiff2{font-family:var(--mono);font-size:12px;font-weight:600;white-space:nowrap}
+.pagenav button{white-space:nowrap}
+.btcchart{margin-top:10px;display:grid;gap:10px}
+.btcbox{position:relative;height:240px;touch-action:pan-y}
+.amp{margin-top:10px;display:grid;gap:10px;padding:16px}
+.amp .hd{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.amp .hd b{font-size:15px}
+.amp .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:end}
+.amp .big{font-family:var(--mono);font-size:22px;font-weight:600;padding:10px 0}
+.amp input{font-size:22px;font-weight:600}
+.sw-asst{width:18px;height:3px;border-radius:2px;background:var(--asst-c)} .sw-btc{width:18px;height:3px;border-radius:2px;background:var(--btc-c)}
 .tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
 .tile{background:var(--surface);border-radius:14px;padding:12px 14px;display:grid;gap:2px;min-width:0}
 .tile .v{font-family:var(--mono);font-size:17px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -142,7 +168,7 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
 
 /* ---------- tab bar ---------- */
 .tabbar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:8px 0 calc(8px + var(--safe-b));z-index:20}
-.tabbar button{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:76px;min-height:48px;color:var(--muted);font-size:12px;font-weight:500}
+.tabbar button{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:70px;min-height:48px;color:var(--muted);font-size:12px;font-weight:500}
 .tabbar button[aria-current="page"]{color:var(--accent-ink);font-weight:700}
 .tabbar svg{width:22px;height:22px}
 
@@ -167,6 +193,18 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
   .tabbar{display:none}
   .view{display:block}
   .desk{display:grid;grid-template-columns:minmax(0,2fr) minmax(320px,1fr);gap:20px;align-items:start;margin-top:20px}
+  .pagenav{display:flex;margin-left:16px}
+  .pagenav button{min-height:38px;padding:0 14px}
+  #vBtc{display:none}
+  body.pg-btc #vBtc{display:block} body.pg-btc #vInici, body.pg-btc .desk{display:none}
+  .duo{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  .coin,.band{border:1px solid var(--line)}
+  .duo .band{grid-column:auto} #bBand1{display:flex} #bDiff2{display:none}
+  .band{margin:0;flex-direction:column;align-items:flex-start;justify-content:center;border-radius:16px;padding:12px 14px}
+  .btcrow{display:grid;grid-template-columns:minmax(0,2fr) minmax(300px,1fr);gap:20px;align-items:start;margin-top:20px}
+  .btcchart,.amp{margin:0;border:1px solid var(--line)}
+  .btcchart{padding:20px 22px}
+  .btcbox{height:380px}
   #vInici .hero{display:none}
   .top{padding:0 0 16px}
   .brand h1{font-size:30px}
@@ -201,7 +239,7 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
   .grab{display:none}
   .toast{bottom:32px}
 }
-@media (max-width:899px){ .simwrap{display:contents} .bwrap{display:contents} .desk{display:block} .chartrow h2{display:none} .chartrow{display:block} }
+@media (max-width:899px){ .btcrow{display:block} .simwrap{display:contents} .bwrap{display:contents} .desk{display:block} .chartrow h2{display:none} .chartrow{display:block} }
 
 /* ================= MOTION ================= */
 :root{--ease:cubic-bezier(.22,1,.36,1);--spring:cubic-bezier(.34,1.56,.64,1);--dx:24px}
@@ -244,7 +282,7 @@ body,.card,.tile,.bcard,.tabbar,.sheet,.ibtn,.seg,input.f,.bwrap,.simwrap,.login
 .seg.thumbed button[aria-pressed="true"]{background:transparent;box-shadow:none}
 /* tab bar indicator + icon pop */
 .tabbar{position:fixed}
-.tabbar .ind{position:absolute;top:6px;left:0;height:52px;width:76px;border-radius:16px;background:color-mix(in srgb,var(--accent) 14%,transparent);transition:transform .5s var(--spring),width .5s var(--spring);pointer-events:none}
+.tabbar .ind{position:absolute;top:6px;left:0;height:52px;width:70px;border-radius:16px;background:color-mix(in srgb,var(--accent) 14%,transparent);transition:transform .5s var(--spring),width .5s var(--spring);pointer-events:none}
 .tabbar button{z-index:1;transition:color .3s var(--ease)}
 .tabbar button svg{transition:transform .4s var(--spring)}
 .tabbar button[aria-current="page"] svg{transform:translateY(-2px) scale(1.08)}
@@ -305,7 +343,8 @@ body,.card,.tile,.bcard,.tabbar,.sheet,.ibtn,.seg,input.f,.bwrap,.simwrap,.login
 <!-- ============ APP ============ -->
 <div class="app loading" id="appView" hidden>
   <div class="top">
-    <div class="brand"><h1><span class="m-title">Cartera</span></h1><span class="tk">ASST</span></div>
+    <div class="brand"><h1><span class="m-title" id="pgTitle">Cartera</span></h1><span class="tk" id="pgTk">ASST</span>
+      <div class="seg pagenav" role="group" aria-label="Pàgina" id="pageNav"><button type="button" data-p="cartera" aria-pressed="true">Cartera</button><button type="button" data-p="btc" aria-pressed="false">BTC vs ASST</button></div></div>
     <div class="iconbtns">
       <button class="ibtn" type="button" id="themeBtn" aria-label="Canvia el tema"></button>
       <button class="ibtn" type="button" id="updBtn" aria-label="Actualitza el preu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 4v5h-5"/></svg></button>
@@ -405,13 +444,49 @@ body,.card,.tile,.bcard,.tabbar,.sheet,.ibtn,.seg,input.f,.bwrap,.simwrap,.login
     </section>
   </div>
 
-  <p class="muted" style="font-size:12px;margin:24px 8px 0">Preu en directe: <a href="https://finnhub.io/" style="color:inherit">Finnhub</a>. Tancaments: <a href="https://www.alphavantage.co/" style="color:inherit">Alpha Vantage</a> (des del 12/11/2026) i Yahoo Finance / Stoculator (abans), convertits a euros amb el canvi EUR/USD de cada dia.</p>
+  <!-- BTC vs ASST -->
+  <section class="view" id="vBtc" aria-label="BTC vs ASST">
+    <div class="duo">
+      <div class="coin" style="--c:var(--asst-c)"><span class="nm"><i></i>ASST</span><span class="v sk" id="bA">–</span><span class="u" id="bAu">–</span><span class="r" id="bAr">–</span><span class="s" id="bAs">–</span></div>
+      <div class="coin" style="--c:var(--btc-c)"><span class="nm"><i></i>Bitcoin</span><span class="v sk" id="bB">–</span><span class="u" id="bBu">–</span><span class="r" id="bBr">–</span><span class="s" id="bBs">–</span></div>
+      <div class="band" id="bBand1"><span class="lbl">Diferència</span><b id="bDiff">–</b><span class="lbl" id="bDiffN"></span></div>
+      <div class="band" id="bBand2"><span id="bMult">–</span><span id="bDiff2"></span></div>
+    </div>
+    <div class="btcrow">
+      <div class="card btcchart">
+        <div class="chartrow"><h2 id="bTitle">Rendiment</h2>
+          <div class="seg" role="group" aria-label="Període" id="bRng">
+            <button type="button" data-r="7" aria-pressed="false">1S</button>
+            <button type="button" data-r="30" aria-pressed="false">1M</button>
+            <button type="button" data-r="90" aria-pressed="true">3M</button>
+            <button type="button" data-r="182" aria-pressed="false">6M</button>
+            <button type="button" data-r="0" aria-pressed="false">Tot</button>
+          </div>
+        </div>
+        <span class="lbl" id="bSub" style="padding:0 4px">Els dos comencen a 0 % el primer dia del període</span>
+        <div class="btcbox" id="btcbox"><canvas id="btcChart" aria-label="Rendiment d'ASST i de bitcoin al mateix gràfic"></canvas><div class="tip" id="btcTip" style="opacity:0"></div></div>
+        <div class="legend"><span><i class="sw-asst"></i>ASST</span><span><i class="sw-btc"></i>Bitcoin</span></div>
+      </div>
+      <div class="card amp">
+        <div class="hd"><b>Amplification ratio</b><a class="lbl" href="https://strive.com/treasury?tab=asst" style="color:inherit">strive.com/treasury</a></div>
+        <div class="grid2">
+          <label class="f" for="ampVal">Segons Strive<input class="f num" id="ampVal" type="number" step="0.01" min="0" inputmode="decimal" placeholder="–"></label>
+          <div style="display:grid;gap:6px"><span class="lbl">Real del període</span><span class="big" id="ampReal">–</span></div>
+        </div>
+        <span class="lbl" id="ampNote">Real = rendiment d'ASST ÷ rendiment de BTC en el període triat.</span>
+        <span class="lbl" id="ampDate"></span>
+      </div>
+    </div>
+  </section>
+
+  <p class="muted" style="font-size:12px;margin:24px 8px 0">Bitcoin: Alpha Vantage (històric diari en euros) i Finnhub / Alpha Vantage (preu del moment). Preu d'ASST en directe: <a href="https://finnhub.io/" style="color:inherit">Finnhub</a>. Tancaments: <a href="https://www.alphavantage.co/" style="color:inherit">Alpha Vantage</a> (des del 12/11/2026) i Yahoo Finance / Stoculator (abans), convertits a euros amb el canvi EUR/USD de cada dia.</p>
 </div>
 
 <nav class="tabbar" id="tabbar" aria-label="Seccions" hidden>
   <span class="ind" id="tabInd" aria-hidden="true"></span>
   <button type="button" data-v="vInici" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>Inici</button>
   <button type="button" data-v="vCompres"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg>Compres</button>
+  <button type="button" data-v="vBtc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l5-5 4 3 4-6 5 4"/><path d="M3 7l5 3 4-4 4 5 5-3" opacity=".5"/></svg>BTC vs ASST</button>
   <button type="button" data-v="vSim"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Simulador</button>
 </nav>
 
@@ -622,6 +697,7 @@ function render(){
 
   renderSim(T);
   drawChart(T, asc, maxV);
+  renderBtc();
 }
 
 function renderSim(T){
@@ -725,8 +801,125 @@ $('chartbox').addEventListener('touchend',()=>setTimeout(()=>{ if(chart){ chart.
 document.querySelectorAll('#rng button').forEach(b=>b.addEventListener('click',()=>{ haptic(); range=+b.dataset.r; chartMode='range'; document.querySelectorAll('#rng button').forEach(x=>x.setAttribute('aria-pressed',x===b)); render(); }));
 let rzT; addEventListener('resize',()=>{ clearTimeout(rzT); rzT=setTimeout(()=>{ render(); placeThumbs(); placeInd(); },200); });
 
+// ---------- BTC vs ASST ----------
+const BTC_EMB = [["2026-08-13",55006],["2026-08-14",54469],["2026-08-15",54515],["2026-08-16",54303],["2026-08-17",55662],["2026-08-18",55888],["2026-08-19",59331],["2026-08-20",62505],["2026-08-21",66974],["2026-08-22",65787],["2026-08-23",66512],["2026-08-24",67697],["2026-08-25",67247],["2026-08-26",67782],["2026-08-27",68911],["2026-08-28",67190],["2026-08-29",67582],["2026-08-30",67018],["2026-08-31",67629],["2026-09-01",66783],["2026-09-02",66736],["2026-09-03",69874],["2026-09-04",68648],["2026-09-05",68789],["2026-09-06",69179],["2026-09-07",68038],["2026-09-08",67495],["2026-09-09",67318],["2026-09-10",65951],["2026-09-11",66588],["2026-09-12",66666],["2026-09-13",66264],["2026-09-14",67678],["2026-09-15",65527],["2026-09-16",66409],["2026-09-17",66551],["2026-09-18",70332],["2026-09-19",70645],["2026-09-20",70698],["2026-09-21",75538],["2026-09-22",75259],["2026-09-23",74157],["2026-09-24",74202],["2026-09-25",73841],["2026-09-26",74158],["2026-09-27",74226],["2026-09-28",73429],["2026-09-29",73750],["2026-09-30",73778],["2026-10-01",75400],["2026-10-02",75144],["2026-10-03",75350],["2026-10-04",76859],["2026-10-05",76463],["2026-10-06",76015],["2026-10-07",74369],["2026-10-08",72873],["2026-10-09",73743],["2026-10-10",74059],["2026-10-11",74701],["2026-10-12",73269],["2026-10-13",74206],["2026-10-14",72921],["2026-10-15",73252],["2026-10-16",72545],["2026-10-17",72479],["2026-10-18",73072],["2026-10-19",72999],["2026-10-20",73869],["2026-10-21",74818],["2026-10-22",72469],["2026-10-23",72434],["2026-10-24",72159],["2026-10-25",71354],["2026-10-26",71601],["2026-10-27",72599],["2026-10-28",72861],["2026-10-29",69581],["2026-10-30",69236],["2026-10-31",69427],["2026-11-01",70171],["2026-11-02",68546],["2026-11-03",69042],["2026-11-04",71612],["2026-11-05",67702],["2026-11-06",67981],["2026-11-07",68021],["2026-11-08",67066],["2026-11-09",67091],["2026-11-10",66008],["2026-11-11",66659],["2026-11-12",64614]];   // Alpha Vantage, BTC/EUR daily close (fallback until the app downloads the full history)
+let btcHist = null, btcLive = null, btcRange = 90, btcChart = null, btcAnim = true, ampRatio = null, ampDate = null, btcBusy = false;
+function btcRows(){ if(btcHist) return btcHist; try{ const c=JSON.parse(localStorage.getItem('btcHist')||'null'); if(c && c.rows) { btcHist=c.rows; return btcHist; } }catch(e){} return BTC_EMB; }
+async function loadBtcHist(force){
+  let c=null; try{ c=JSON.parse(localStorage.getItem('btcHist')||'null'); }catch(e){}
+  if(c && c.rows){ btcHist=c.rows; if(!force && Date.now()-c.t < 12*3600e3) return; }
+  if(!avKey) return;
+  try{ const p=await av({function:'DIGITAL_CURRENCY_DAILY',symbol:'BTC',market:'EUR'});
+    const s=p && p['Time Series (Digital Currency Daily)']; if(!s) return;
+    const rows=Object.keys(s).sort().map(d=>{ const o=s[d]; const k=Object.keys(o).find(k=>/close/i.test(k) && !/usd/i.test(k)) || Object.keys(o).find(k=>/close/i.test(k)); return [d, +o[k]]; }).filter(r=>r[1]>0);
+    if(rows.length>20){ btcHist=rows; try{ localStorage.setItem('btcHist',JSON.stringify({t:Date.now(),rows})); }catch(e){} }
+  }catch(e){}
+}
+function saneBtc(v){ const r=btcRows(); const last=r[r.length-1][1]; return v>last*0.6 && v<last*1.6; }
+async function refreshBtcLive(){
+  if(fhKey){ try{ const r=await fetch('https://finnhub.io/api/v1/quote?'+new URLSearchParams({symbol:'BINANCE:BTCEUR',token:fhKey}));
+      if(r.ok){ const q=await r.json(); if(q && q.c>0 && saneBtc(q.c)){ btcLive={eur:q.c, t:(q.t||Date.now()/1000)*1000}; return true; } } }catch(e){} }
+  try{ const c=JSON.parse(localStorage.getItem('btcLive')||'null'); if(c && Date.now()-c.at < 15*60e3){ btcLive=c; return true; } }catch(e){}
+  if(avKey){ try{ const p=await av({function:'CURRENCY_EXCHANGE_RATE',from_currency:'BTC',to_currency:'EUR'});
+      const v=p && p['Realtime Currency Exchange Rate'] && +p['Realtime Currency Exchange Rate']['5. Exchange Rate'];
+      if(v>0 && saneBtc(v)){ btcLive={eur:v, t:Date.now(), at:Date.now()}; try{ localStorage.setItem('btcLive',JSON.stringify(btcLive)); }catch(e){} return true; } }catch(e){} }
+  return false;
+}
+function btcVisible(){ return isDesk() ? document.body.classList.contains('pg-btc') : $('vBtc').classList.contains('on'); }
+async function openBtc(force){ renderBtc(); if(btcBusy) return; btcBusy=true;
+  try{ await loadBtcHist(force); await refreshBtcLive(); }finally{ btcBusy=false; } btcAnim=true; renderBtc(); }
+function renderBtc(){
+  if(!btcVisible()) return;
+  const T=totals(), rows=btcRows(); if(!rows.length) return;
+  // BTC daily map (+ live value for today)
+  const bm=new Map(rows); const todayUtc=new Date().toISOString().slice(0,10);
+  if(btcLive) bm.set(todayUtc, btcLive.eur);
+  const bdays=[...bm.keys()].sort();
+  // ASST, forward-filled onto the BTC calendar
+  const am=new Map(T.s.map(([d,v])=>[d,v.eur])); const adays=[...am.keys()].sort();
+  const firstCommon = adays[0] > bdays[0] ? adays[0] : bdays[0];
+  const lastDay = bdays[bdays.length-1] > adays[adays.length-1] ? bdays[bdays.length-1] : adays[adays.length-1];
+  const startLimit = btcRange ? new Date(Date.parse(lastDay+'T12:00:00Z') - btcRange*DAY).toISOString().slice(0,10) : firstCommon;
+  const start = startLimit < firstCommon ? firstCommon : startLimit;
+  const allDays=[...new Set([...bdays, ...adays])].filter(d=>d>=start).sort();
+  let la=null, lb=null; for(const d of adays){ if(d<=start) la=am.get(d); } for(const d of bdays){ if(d<=start) lb=bm.get(d); }
+  const pts=[]; for(const d of allDays){ if(am.has(d)) la=am.get(d); if(bm.has(d)) lb=bm.get(d); if(la && lb) pts.push({d, a:la, b:lb}); }
+  if(pts.length<2) return;
+  const a0=pts[0].a, b0=pts[0].b, aN=pts[pts.length-1].a, bN=pts[pts.length-1].b, ra=aN/a0-1, rb=bN/b0-1;
+  const sub=`des del ${fds(pts[0].d)}`;
+  setNum('bA', T.cur, v=>fmtE.format(v)); $('bAu').textContent=(T.curO.est?'≈ ':'')+fmtU.format(T.curO.usd)+(T.curO.live?' · '+priceLabel(T).short:'');
+  setNum('bAr', ra, v=>fmtP.format(v), 'r '+cls(ra)); $('bAs').textContent=sub;
+  const bNow = btcLive ? btcLive.eur : bN;
+  setNum('bB', bNow, v=>new Intl.NumberFormat('ca-ES',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(v));
+  $('bBu').textContent='≈ '+new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(bNow*T.curO.fx)+(btcLive?' · ara':'');
+  setNum('bBr', rb, v=>fmtP.format(v), 'r '+cls(rb)); $('bBs').textContent=sub;
+  setNum('bDiff', ra-rb, v=>fmtP.format(v)); $('bDiff').className=cls(ra-rb);
+  $('bDiff2').textContent = fmtP.format(ra-rb); $('bDiff2').className = cls(ra-rb);
+  $('bDiffN').textContent = ra>rb ? 'ASST ha anat millor que BTC' : ra<rb ? 'BTC ha anat millor que ASST' : 'Igual';
+  const okRatio = Math.abs(rb) >= 0.01 && Math.sign(ra)===Math.sign(rb);
+  const mult = okRatio ? ra/rb : null;
+  $('bMult').innerHTML = okRatio ? `ASST ha fet <b>${fmtN.format(mult).replace(/,?0+$/,'')}×</b> el moviment de BTC` : `ASST ${fmtP.format(ra)} · BTC ${fmtP.format(rb)}: van en direccions diferents`;
+  $('ampReal').textContent = okRatio ? fmtN.format(mult)+'×' : '–';
+  $('ampNote').textContent = `Real = rendiment d'ASST ÷ rendiment de BTC ${sub} (${fmtP.format(ra)} ÷ ${fmtP.format(rb)}).` + (okRatio?'':' Ara no es pot calcular: BTC gairebé no s\'ha mogut o van en sentit contrari.');
+  $('bTitle').textContent = `Rendiment ${sub}`;
+  drawBtc(pts, a0, b0);
+}
+function btcTipFn(ctx){
+  const t=ctx.tooltip, el=$('btcTip'); if(!t || t.opacity===0){ el.style.opacity=0; return; }
+  const dp=t.dataPoints||[]; if(!dp.length) return; const p=dp[0].raw.p;
+  el.innerHTML=`<b>${fd(p.d)}</b><span class="num" style="color:var(--asst-c)">ASST ${fmtP.format(p.a/p.a0-1)} · ${fmtE.format(p.a)}</span><span class="num" style="color:var(--accent-ink)">BTC ${fmtP.format(p.b/p.b0-1)} · ${new Intl.NumberFormat('ca-ES',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(p.b)}</span>`;
+  el.style.opacity=1; const box=$('btcbox'), w=el.offsetWidth, h=el.offsetHeight;
+  let x=t.caretX-w/2; x=Math.max(4,Math.min(box.clientWidth-w-4,x)); el.style.left=x+'px'; el.style.top='6px';
+}
+const btcCross={ id:'btcCross', afterDatasetsDraw(c){ const a=c.tooltip&&c.tooltip.getActiveElements(); if(!a||!a.length) return;
+  const x=a[0].element.x,{top,bottom}=c.chartArea,ctx=c.ctx; ctx.save(); ctx.strokeStyle=cssv('--muted'); ctx.globalAlpha=.6; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(x,top); ctx.lineTo(x,bottom); ctx.stroke(); ctx.restore(); } };
+function drawBtc(pts, a0, b0){
+  if(!window.Chart) return;
+  const ac=cssv('--asst-c'), bc=cssv('--btc-c'), grid=cssv('--grid'), muted=cssv('--muted'), surf=cssv('--surface'), line=cssv('--line');
+  const xs=pts.map(p=>ts(p.d)), desk=isDesk();
+  const mk=(k,base)=>pts.map((p,i)=>({x:xs[i], y:(p[k]/base-1)*100, p:{...p,a0,b0}}));
+  const anim = btcAnim && !reduced(); btcAnim=false;
+  const data={datasets:[
+    {label:'BTC',data:mk('b',b0),borderColor:bc,borderWidth:2.2,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:bc,pointHoverBorderColor:surf,pointHoverBorderWidth:2,tension:0},
+    {label:'ASST',data:mk('a',a0),borderColor:ac,borderWidth:2.2,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:ac,pointHoverBorderColor:surf,pointHoverBorderWidth:2,tension:0}
+  ]};
+  const options={responsive:true,maintainAspectRatio:false, animation: anim?{duration:800,easing:'easeOutQuart'}:false,
+    events:['mousemove','mouseout','click','touchstart','touchmove','touchend'],
+    interaction:{mode:'index',intersect:false}, layout:{padding:{top:8,right:desk?12:4}},
+    scales:{ x:{type:'linear',min:xs[0],max:xs[xs.length-1],grid:{display:false},border:{color:grid},ticks:{color:muted,font:{family:'IBM Plex Mono',size:11},maxRotation:0,maxTicksLimit:desk?10:5,callback:v=>{const d=new Date(v);return `${d.getUTCDate()}/${d.getUTCMonth()+1}`;}}},
+      y:{grid:{color:c=>c.tick && c.tick.value===0 ? line : grid, lineWidth:c=>c.tick && c.tick.value===0 ? 1.5 : 1},border:{display:false},ticks:{color:muted,font:{family:'IBM Plex Mono',size:11},maxTicksLimit:6,callback:v=>(v>0?'+':'')+Math.round(v)+'%'}} },
+    plugins:{legend:{display:false},tooltip:{enabled:false,external:btcTipFn}}
+  };
+  if(anim){ const cv=$('btcChart'); cv.classList.remove('reveal'); void cv.offsetWidth; cv.classList.add('reveal'); }
+  if(btcChart){ btcChart.data=data; btcChart.options=options; btcChart.update(anim?undefined:'none'); }
+  else btcChart=new Chart($('btcChart'),{type:'line',data,options,plugins:[btcCross]});
+}
+$('btcbox').addEventListener('touchend',()=>setTimeout(()=>{ if(btcChart){ btcChart.setActiveElements([]); btcChart.tooltip.setActiveElements([],{x:0,y:0}); btcChart.update('none'); $('btcTip').style.opacity=0; } },2500));
+document.querySelectorAll('#bRng button').forEach(b=>b.addEventListener('click',()=>{ haptic(); btcRange=+b.dataset.r; btcAnim=true; document.querySelectorAll('#bRng button').forEach(x=>x.setAttribute('aria-pressed',x===b)); renderBtc(); }));
+// amplification ratio (typed by hand, saved to the account)
+function showAmp(){ $('ampVal').value = ampRatio!=null ? ampRatio : ''; $('ampDate').textContent = ampDate ? `Dada de Strive actualitzada el ${fd(ampDate)}.` : 'Escriu la dada que surt a la web de Strive. Es guarda al teu compte.'; }
+let ampT; $('ampVal').addEventListener('input',()=>{ clearTimeout(ampT); ampT=setTimeout(saveAmp,900); });
+$('ampVal').addEventListener('change',()=>{ clearTimeout(ampT); saveAmp(); });
+async function saveAmp(){
+  const raw=$('ampVal').value.trim(), v = raw==='' ? null : +(+raw).toFixed(4);
+  if(v!==null && !(v>=0)) return; if(v===ampRatio) return;
+  const d = v===null ? null : today();
+  const {error}=await sb.from('config').upsert({user_id:user.id, av_key:avKey, fh_key:fhKey, amp_ratio:v, amp_date:d});
+  if(error){ toast(/amp_/.test(error.message) ? "Falta afegir les columnes de l'amplification ratio a Supabase (mira les instruccions)." : "No s'ha pogut desar: "+error.message); return; }
+  ampRatio=v; ampDate=d; showAmp(); haptic(); toast('Amplification ratio desada.');
+}
+// desktop page switch
+document.querySelectorAll('#pageNav button').forEach(b=>b.addEventListener('click',()=>{
+  haptic(); const btcPg=b.dataset.p==='btc'; document.body.classList.toggle('pg-btc',btcPg);
+  $('pgTitle').textContent = btcPg ? 'BTC vs ASST' : 'Cartera'; $('pgTk').hidden = btcPg;
+  requestAnimationFrame(()=>requestAnimationFrame(placeThumbs));
+  document.querySelectorAll('#pageNav button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  if(btcPg){ btcAnim=true; openBtc(); } else { chartMode='range'; render(); }
+  scrollTo(0,0);
+}));
+
 // ---------- tabs (phone) ----------
-const TABS=['vInici','vCompres','vSim'];
+const TABS=['vInici','vCompres','vBtc','vSim'];
 function placeInd(){ const a=document.querySelector('#tabbar button[aria-current="page"]'), ind=$('tabInd'); if(!a||!ind) return;
   ind.style.width=a.offsetWidth+'px'; ind.style.transform=`translateX(${a.offsetLeft}px)`; }
 document.querySelectorAll('#tabbar button').forEach(b=>b.addEventListener('click',()=>{
@@ -738,6 +931,8 @@ document.querySelectorAll('#tabbar button').forEach(b=>b.addEventListener('click
   document.querySelectorAll('#tabbar button').forEach(x=>{ if(x===b) x.setAttribute('aria-current','page'); else x.removeAttribute('aria-current'); });
   placeInd(); scrollTo(0,0);
   if(b.dataset.v==='vInici'){ chartMode='range'; render(); }
+  if(b.dataset.v==='vBtc'){ btcAnim=true; openBtc(); }
+  $('pgTitle').textContent = b.dataset.v==='vBtc' ? 'BTC vs ASST' : 'Cartera'; $('pgTk').hidden = b.dataset.v==='vBtc';
   requestAnimationFrame(placeThumbs);
 }));
 
@@ -796,14 +991,14 @@ $('bDel').addEventListener('click', async ()=>{
 $('setBtn').addEventListener('click',()=>{ $('avKey').value=avKey; $('fhKey').value=fhKey; $('setMsg').textContent=''; openSheet('setSheet'); });
 $('setSheet').addEventListener('submit', async e=>{
   e.preventDefault(); const k=$('avKey').value.trim(), f=$('fhKey').value.trim();
-  const {error}=await sb.from('config').upsert({user_id:user.id, av_key:k, fh_key:f});
+  const {error}=await sb.from('config').upsert({user_id:user.id, av_key:k, fh_key:f, ...(ampRatio!=null?{amp_ratio:ampRatio, amp_date:ampDate}:{})});
   if(error){ $('setMsg').className='msg err'; $('setMsg').textContent = /fh_key/.test(error.message) ? "Falta afegir la columna fh_key a Supabase (mira les instruccions)." : "No s'ha pogut desar: "+error.message; return; }
   avKey=k; fhKey=f; closeSheets(); toast('Configuració desada.'); refreshLive(true);
 });
 function wipeSession(){ try{ [localStorage, sessionStorage].forEach(st=>Object.keys(st).filter(k=>k.startsWith('sb-')).forEach(k=>st.removeItem(k))); localStorage.removeItem('fxLive'); }catch(e){} }
 function toLogin(){
   if(typeof liveTimer!=='undefined') clearInterval(liveTimer);
-  user=null; buys=[]; prices=[]; live=null; liveFx=null; avKey=''; fhKey=''; listSig='';
+  user=null; buys=[]; prices=[]; live=null; liveFx=null; avKey=''; fhKey=''; listSig=''; ampRatio=null; ampDate=null; btcLive=null;
   closeSheets(); $('lPass').value=''; $('lMsg').textContent='';
   setTimeout(()=>{ showLogin(); $('appView').classList.add('loading'); },320);
 }
@@ -839,6 +1034,7 @@ $('updBtn').addEventListener('click', async ()=>{
   btn.classList.add('spin'); haptic();
   if(fhKey){ liveFx=null; try{ localStorage.removeItem('fxLive'); }catch(e){} }
   const gotLive = fhKey ? await refreshLive(true) : false;
+  if(btcVisible()){ try{ localStorage.removeItem('btcLive'); }catch(e){} await refreshBtcLive(); renderBtc(); }
   if(!avKey){ btn.classList.remove('spin'); if(gotLive){ btn.classList.add('done'); haptic(14); setTimeout(()=>btn.classList.remove('done'),1600); const T=totals(); toast(`Preu actualitzat: ${fmtU.format(T.curO.usd)} (${priceLabel(T).short}).`); } return; }
   try{
     if(gotLive) await sleep(1300); // Alpha Vantage free: about 1 request per second
@@ -878,6 +1074,7 @@ async function loadData(){
   if(c.error||p.error){ toast("No s'han pogut carregar les dades: "+((c.error||p.error).message)); }
   buys=(c.data||[]).map(b=>({...b, valor:+b.valor, preu:+b.preu, comissio:+b.comissio, accions:+b.accions}));
   prices=p.data||[]; avKey=(g.data&&g.data.av_key)||''; fhKey=(g.data&&g.data.fh_key)||'';
+  ampRatio = g.data && g.data.amp_ratio!=null ? +g.data.amp_ratio : null; ampDate = (g.data && g.data.amp_date) || null; showAmp();
   render(); $('appView').classList.remove('loading');
   refreshLive();
 }
@@ -908,10 +1105,10 @@ async function refreshLive(loud){
   }catch(e){ if(loud) toast("No s'ha pogut connectar amb Finnhub. Comprova la connexió."); return false; }
   finally{ liveBusy=false; }
 }
-function startLiveTimer(){ clearInterval(liveTimer); liveTimer=setInterval(()=>{ if(document.visibilityState==='visible' && user) refreshLive(); }, 60e3); }
+function startLiveTimer(){ clearInterval(liveTimer); liveTimer=setInterval(async ()=>{ if(document.visibilityState==='visible' && user){ await refreshLive(); if(btcVisible() && fhKey){ await refreshBtcLive(); renderBtc(); } } }, 60e3); }
 startLiveTimer();
 function showApp(){ $('loginView').hidden=true; $('appView').hidden=false; $('tabbar').hidden=false;
-  let i=0; document.querySelectorAll('#appView .top, #vInici .hero, #vInici .tile, #vInici .chartcard, #vInici .updline, .bwrap .sectionhead, .bwrap .card.sum, .simwrap > *, .simres .tile').forEach(el=>{ el.classList.add('stg'); el.style.setProperty('--i', i++ % 12); });
+  let i=0; document.querySelectorAll('#vBtc .coin, #vBtc .band, #vBtc .btcchart, #vBtc .amp, #appView .top, #vInici .hero, #vInici .tile, #vInici .chartcard, #vInici .updline, .bwrap .sectionhead, .bwrap .card.sum, .simwrap > *, .simres .tile').forEach(el=>{ el.classList.add('stg'); el.style.setProperty('--i', i++ % 12); });
   requestAnimationFrame(()=>{ placeThumbs(); placeInd(); }); }
 function showLogin(msg){ $('appView').hidden=true; $('tabbar').hidden=true; $('loginView').hidden=false; if(msg){ $('lMsg').className='msg err'; $('lMsg').textContent=msg; } }
 $('loginForm').addEventListener('submit', async e=>{
