@@ -47,6 +47,8 @@ button{cursor:pointer}
 .login form{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:24px;display:grid;gap:14px}
 .login h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em}
 .logo{width:56px;height:56px;border-radius:14px}
+.remember{display:flex;align-items:center;gap:10px;font-size:14px;min-height:44px;cursor:pointer}
+.remember input{width:22px;height:22px;accent-color:var(--accent);margin:0}
 
 /* ---------- shared ---------- */
 .app{max-width:1240px;margin:0 auto;padding:calc(12px + var(--safe-t)) 12px calc(96px + var(--safe-b))}
@@ -156,7 +158,7 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
   #vInici .hero{display:none}
   .top{padding:0 0 16px}
   .brand h1{font-size:30px}
-  .tiles{grid-template-columns:repeat(5,minmax(0,1fr));margin:0 0 20px}
+  .tiles{grid-template-columns:repeat(6,minmax(0,1fr));margin:0 0 20px}
   .tile{border:1px solid var(--line);padding:16px 18px}
   .tile .v{font-size:21px}
   .tile.d-only{display:grid}
@@ -201,6 +203,7 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
     <p class="muted" style="margin:0">Entra amb el correu i la contrasenya del teu usuari de Supabase.</p>
     <label class="f" for="lEmail">Correu<input class="f" id="lEmail" type="email" autocomplete="username" required></label>
     <label class="f" for="lPass">Contrasenya<input class="f" id="lPass" type="password" autocomplete="current-password" required></label>
+    <label class="remember" for="lRem"><input type="checkbox" id="lRem" checked> Recorda'm en aquest dispositiu</label>
     <button class="btn" type="submit" id="lBtn">Entra</button>
     <div class="msg" id="lMsg" role="status"></div>
   </form>
@@ -226,6 +229,7 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
       <span class="num muted" style="font-size:12px;margin-top:4px" id="hPrice">–</span>
     </div>
     <div class="tiles">
+      <div class="tile d-only"><span class="lbl" id="tCurL">Preu ASST</span><span class="v" id="tCur">–</span><span class="n" id="tCurN">–</span></div>
       <div class="tile d-only"><span class="lbl">Valor actual</span><span class="v" id="tVal">–</span><span class="n" id="tValN">–</span></div>
       <div class="tile"><span class="lbl">Invertit</span><span class="v" id="tInv">–</span><span class="n" id="tInvN">–</span></div>
       <div class="tile"><span class="lbl">Preu mitjà</span><span class="v" id="tAvg">–</span><span class="n" id="tAvgN">–</span></div>
@@ -422,6 +426,9 @@ function render(){
   $('hPL').textContent = signE(T.pl); $('hPL').className = cls(T.pl);
   $('hR').textContent = fmtP.format(T.r); $('hR').className = 'pill '+cls(T.pl);
   $('hPrice').textContent = `ASST ${fmtE.format(T.cur)} · ${fmtU.format(T.curO.usd)} · tancament ${fds(T.curD)}`;
+  $('tCurL').textContent = `Preu ASST · ${fds(T.curD)}`;
+  $('tCur').textContent = fmtE.format(T.cur);
+  $('tCurN').textContent = (T.curO.est?'≈ ':'') + fmtU.format(T.curO.usd);
   $('tVal').textContent = fmtE.format(T.val); $('tValN').textContent = `${fmtS.format(T.sh)} accions`;
   $('tInv').textContent = fmtE.format(T.inv); $('tInvN').textContent = `${buys.length} ${buys.length===1?'compra':'compres'}`;
   $('tAvg').textContent = T.sh? fmtE.format(T.avg) : '–'; $('tAvgN').textContent = T.sh? '≈ '+fmtU.format(T.avg*T.curO.fx) : '';
@@ -653,6 +660,8 @@ function showApp(){ $('loginView').hidden=true; $('appView').hidden=false; $('ta
 function showLogin(msg){ $('appView').hidden=true; $('tabbar').hidden=true; $('loginView').hidden=false; if(msg){ $('lMsg').className='msg err'; $('lMsg').textContent=msg; } }
 $('loginForm').addEventListener('submit', async e=>{
   e.preventDefault(); $('lBtn').disabled=true; $('lMsg').textContent='';
+  const rem=$('lRem').checked;
+  try{ localStorage.setItem('recorda', rem?'1':'0'); if(rem) localStorage.setItem('correu',$('lEmail').value.trim()); else localStorage.removeItem('correu'); }catch(err){}
   const {data,error}=await sb.auth.signInWithPassword({email:$('lEmail').value.trim(), password:$('lPass').value});
   $('lBtn').disabled=false;
   if(error){ $('lMsg').className='msg err'; $('lMsg').textContent = /invalid/i.test(error.message)? 'Correu o contrasenya incorrectes.' : "No s'ha pogut entrar: "+error.message; return; }
@@ -662,7 +671,15 @@ document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==
 
 (async function init(){
   if(!window.supabase || !CFG.SUPABASE_URL || CFG.SUPABASE_URL.includes('EL-TEU-PROJECTE')){ showLogin("Falta configurar Supabase al fitxer config.js."); return; }
-  sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY, {auth:{persistSession:true, autoRefreshToken:true}});
+  // "Recorda'm": session kept in localStorage (survives closing the app); otherwise sessionStorage (ends when the app is closed)
+  const remember = () => { try{ return localStorage.getItem('recorda')!=='0'; }catch(e){ return true; } };
+  const storage = {
+    getItem:k=>{ try{ return localStorage.getItem(k) ?? sessionStorage.getItem(k); }catch(e){ return null; } },
+    setItem:(k,v)=>{ try{ const a=remember()?localStorage:sessionStorage, b=remember()?sessionStorage:localStorage; a.setItem(k,v); b.removeItem(k); }catch(e){} },
+    removeItem:k=>{ try{ localStorage.removeItem(k); sessionStorage.removeItem(k); }catch(e){} }
+  };
+  try{ $('lRem').checked = remember(); $('lEmail').value = localStorage.getItem('correu') || ''; }catch(e){}
+  sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY, {auth:{persistSession:true, autoRefreshToken:true, storage}});
   const {data:{session}} = await sb.auth.getSession();
   if(session){ user=session.user; showApp(); render(); await loadData(); } else showLogin();
 })();
