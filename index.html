@@ -817,7 +817,7 @@ async function loadBtcHist(force){
 }
 function saneBtc(v){ const r=btcRows(); const last=r[r.length-1][1]; return v>last*0.6 && v<last*1.6; }
 async function refreshBtcLive(){
-  if(fhKey){ try{ const r=await fetch('https://finnhub.io/api/v1/quote?'+new URLSearchParams({symbol:'BINANCE:BTCEUR',token:fhKey}));
+  if(fhKey){ try{ const r=await fetch('https://finnhub.io/api/v1/quote?'+new URLSearchParams({symbol:'BINANCE:BTCEUR',token:fhKey,_:Date.now()}), {cache:'no-store', signal:AbortSignal.timeout(12000)});
       if(r.ok){ const q=await r.json(); if(q && q.c>0 && saneBtc(q.c)){ btcLive={eur:q.c, t:(q.t||Date.now()/1000)*1000}; return true; } } }catch(e){} }
   try{ const c=JSON.parse(localStorage.getItem('btcLive')||'null'); if(c && Date.now()-c.at < 15*60e3){ btcLive=c; return true; } }catch(e){}
   if(avKey){ try{ const p=await av({function:'CURRENCY_EXCHANGE_RATE',from_currency:'BTC',to_currency:'EUR'});
@@ -1025,7 +1025,7 @@ $('chips').addEventListener('click',e=>{ const c=e.target.closest('.chip'); if(!
 // ---------- Alpha Vantage ----------
 async function av(params){
   const u='https://www.alphavantage.co/query?'+new URLSearchParams({...params, apikey:avKey});
-  const r=await fetch(u); if(!r.ok) throw new Error('HTTP '+r.status); return r.json();
+  const r=await fetch(u, {cache:'no-store', signal:AbortSignal.timeout(20000)}); if(!r.ok) throw new Error('HTTP '+r.status); return r.json();
 }
 function avNote(p){ return (p && (p.Note||p.Information||p['Error Message'])) || ''; }
 $('updBtn').addEventListener('click', async ()=>{
@@ -1093,7 +1093,7 @@ async function getLiveFx(){
 async function refreshLive(loud){
   if(!fhKey || liveBusy) return false; liveBusy=true;
   try{
-    const r=await fetch('https://finnhub.io/api/v1/quote?'+new URLSearchParams({symbol:'ASST', token:fhKey}));
+    const r=await fetch('https://finnhub.io/api/v1/quote?'+new URLSearchParams({symbol:'ASST', token:fhKey, _:Date.now()}), {cache:'no-store', signal:AbortSignal.timeout(12000)});
     if(!r.ok){ if(loud) toast(r.status===401||r.status===403 ? 'La clau de Finnhub no és vàlida. Revisa-la a Configuració.' : `Finnhub no respon (error ${r.status}).`); return false; }
     const q=await r.json();
     if(!(q && q.c>0 && q.t)){ if(loud) toast('Finnhub no ha donat cap preu per a ASST.'); return false; }
@@ -1120,7 +1120,7 @@ $('loginForm').addEventListener('submit', async e=>{
   if(error){ $('lMsg').className='msg err'; $('lMsg').textContent = /invalid/i.test(error.message)? 'Correu o contrasenya incorrectes.' : "No s'ha pogut entrar: "+error.message; return; }
   user=data.user; startLiveTimer(); showApp(); await loadData();
 });
-document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible' && user) loadData(); });
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible' && user){ liveBusy=false; startLiveTimer(); loadData(); } });
 
 (async function init(){
   if(!window.supabase || !CFG.SUPABASE_URL || CFG.SUPABASE_URL.includes('EL-TEU-PROJECTE')){ showLogin("Falta configurar Supabase al fitxer config.js."); return; }
