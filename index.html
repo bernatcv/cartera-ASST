@@ -725,17 +725,19 @@ function renderSim(T){
 // ---------- chart ----------
 // Custom interaction: a purchase bubble wins when the finger/cursor is on it; otherwise the nearest day on the line.
 Chart.Interaction.modes.cartera = function(chart, e){
+  // the vertical line follows the nearest day; if a purchase sits on that day, it is shown too
   const pos = Chart.helpers.getRelativePosition(e, chart);
-  const bm = chart.getDatasetMeta(0);
-  let best=null, bd=Infinity;
-  bm.data.forEach((el,i)=>{ const r=(el.options && el.options.radius)||10; const d=Math.hypot(el.x-pos.x, el.y-pos.y); if(d<=r+8 && d<bd){ bd=d; best={datasetIndex:0,index:i,element:el}; } });
-  if(best) return [best];
   const lm = chart.getDatasetMeta(1); let li=-1, ld=Infinity;
   lm.data.forEach((el,i)=>{ const d=Math.abs(el.x-pos.x); if(d<ld){ ld=d; li=i; } });
-  return li>=0 ? [{datasetIndex:1,index:li,element:lm.data[li]}] : [];
+  if(li<0) return [];
+  const lraw = chart.data.datasets[1].data[li], linePt = {datasetIndex:1,index:li,element:lm.data[li]};
+  const bm = chart.getDatasetMeta(0); let best=null, bd=Infinity;
+  bm.data.forEach((el,i)=>{ const raw=chart.data.datasets[0].data[i]; const same = raw && raw.b && lraw && raw.b.data===lraw.d;
+    const dx=Math.abs(el.x-pos.x); if((same || dx<=4) && dx<bd){ bd=dx; best={datasetIndex:0,index:i,element:el}; } });
+  return best ? [best, linePt] : [linePt];
 };
-const crosshair = { id:'crosshair', afterDatasetsDraw(c){ const a=c.tooltip&&c.tooltip.getActiveElements(); if(!a||!a.length||a[0].datasetIndex!==1) return;
-  const x=a[0].element.x, {top,bottom}=c.chartArea, ctx=c.ctx; ctx.save(); ctx.strokeStyle=cssv('--muted'); ctx.globalAlpha=.6; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(x,top); ctx.lineTo(x,bottom); ctx.stroke(); ctx.restore(); } };
+const crosshair = { id:'crosshair', afterDatasetsDraw(c){ const a=c.tooltip&&c.tooltip.getActiveElements(); if(!a||!a.length) return;
+  const x=(a.find(e=>e.datasetIndex===1)||a[0]).element.x, {top,bottom}=c.chartArea, ctx=c.ctx; ctx.save(); ctx.strokeStyle=cssv('--muted'); ctx.globalAlpha=.6; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(x,top); ctx.lineTo(x,bottom); ctx.stroke(); ctx.restore(); } };
 // ---------- chart header: current price, or the price under the finger ----------
 let headDef=null, headBase=null;
 const RANGE_LBL={1:'avui',7:'1 setmana',30:'1 mes',90:'3 mesos',182:'6 mesos',0:'des de l\'inici'};
@@ -752,20 +754,21 @@ function paintHead(p){
 function externalTip(ctx){
   const t=ctx.tooltip, el=$('tip');
   if(!t || t.opacity===0){ el.style.opacity=0; if(headDef) paintHead(headDef); return; }
-  const it=t.dataPoints && t.dataPoints[0]; if(!it) return;
-  if(it.datasetIndex!==0){ // scrubbing the line: the header follows the finger, no floating tooltip
-    const r=it.raw; el.style.opacity=0;
-    paintHead({eur:r.y, usd:r.usd, est:r.est, scrub:true, when: r.intra ? (r.open?'Obertura · ':'')+hhmm(r.t) : fd(r.d)+(r.live?' · '+hhmm(r.t):'')});
-    return; }
-  if(headDef) paintHead(headDef);
+  const dps=t.dataPoints||[]; const lineIt=dps.find(d=>d.datasetIndex===1), bubIt=dps.find(d=>d.datasetIndex===0);
+  // the header follows the vertical line
+  if(lineIt){ const r=lineIt.raw; paintHead({eur:r.y, usd:r.usd, est:r.est, scrub:true, when: r.intra ? (r.open?'Obertura · ':'')+hhmm(r.t) : fd(r.d)+(r.live?' · '+hhmm(r.t):'')}); }
+  // the purchase card only when the line is on a purchase day
+  if(!bubIt){ el.style.opacity=0; return; }
+  const it=bubIt;
   let html;
   if(it.datasetIndex===0){ const b=it.raw.b, n=shares(b), now=n*totals().cur;
     html=`<b>Compra · ${fd(b.data)}</b><span class="num">Invertit: ${fmtE.format(b.valor)}</span><span class="num">Preu: ${fmtE.format(b.preu)} (≈ ${fmtU.format(b.preu*it.raw.fx)})</span><span class="num">Accions: ${fmtS.format(n)}</span><span class="num ${cls(now-b.valor)}">Ara val: ${fmtE.format(now)} (${signE(now-b.valor)})</span>`;
   } else { const r=it.raw; html=`<b>${r.intra ? (r.open?'Obertura · ':'')+hhmm(r.t) : fd(r.d)+(r.live?' · '+hhmm(r.t):'')}</b><span class="num">${r.intra?'Preu':(r.live?'Últim preu':'Tancament')}: ${fmtE.format(r.y)}</span><span class="num">En dòlars: ${r.est?'≈ ':''}${fmtU.format(r.usd)}</span>`; }
   el.innerHTML=html; el.style.opacity=1;
   const box=$('chartbox'), w=el.offsetWidth, h=el.offsetHeight;
-  let x=t.caretX - w/2; x=Math.max(4, Math.min(box.clientWidth-w-4, x));
-  let y=t.caretY - h - 14; if(y<0) y=t.caretY+16;
+  const bx=it.element.x, by=it.element.y, br=(it.element.options&&it.element.options.radius)||10;
+  let x=bx - w/2; x=Math.max(4, Math.min(box.clientWidth-w-4, x));
+  let y=by - br - h - 10; if(y<0) y=by+br+10;
   el.style.left=x+'px'; el.style.top=y+'px';
 }
 function drawChart(T, asc, maxV){
