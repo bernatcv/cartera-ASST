@@ -80,7 +80,12 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
 .hero .big{font-family:var(--mono);font-size:38px;font-weight:600;letter-spacing:-.02em}
 .pill{font-family:var(--mono);font-size:12px;font-weight:600;border-radius:999px;padding:2px 8px}
 .pill.neg{background:var(--bad-bg)} .pill.pos{background:var(--good-bg)}
-.pricerow{margin-top:12px;background:var(--surface);border-radius:16px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--accent) 45%,transparent)}
+.chhead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:2px 4px 0}
+.ch-l{display:grid;gap:2px;min-width:0}
+.ch-chg{font-family:var(--mono);font-size:13px;font-weight:600}
+.chhead.scrub .pr-v{color:var(--ink)}
+.chhead.scrub .pr-dot{background:var(--accent);animation:none}
+.pr-k{display:flex;align-items:center;gap:8px}
 .pr-l{display:flex;align-items:center;gap:10px}
 .pr-l > span:last-child{display:grid;gap:1px}
 .pr-dot{width:10px;height:10px;border-radius:50%;background:var(--muted);transition:background-color .4s}
@@ -89,8 +94,9 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
 .pr-k{font-size:14px;font-weight:700}
 .pr-d{font-size:12px;color:var(--muted)}
 .pr-r{display:grid;justify-items:end;gap:1px}
-.pr-v{font-family:var(--mono);font-size:24px;font-weight:600;letter-spacing:-.01em}
-.pr-u{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.pr-v{font-family:var(--mono);font-size:30px;font-weight:600;letter-spacing:-.02em;line-height:1.15}
+.pr-u{font-family:var(--mono);font-size:13px;color:var(--muted);padding-top:2px;white-space:nowrap}
+.chartrow h2{display:none!important}
 .plrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--mono);font-weight:600}
 .chartcard{margin-top:14px;display:grid;gap:10px}
 .seg{display:flex;background:var(--bg);border-radius:10px;padding:3px;gap:2px}
@@ -358,10 +364,6 @@ body,.card,.tile,.bcard,.tabbar,.sheet,.ibtn,.seg,input.f,.bwrap,.simwrap,.login
       <span class="lbl" style="font-size:13px">Valor de la cartera</span>
       <span class="big sk" id="hVal">–</span>
       <div class="plrow"><span id="hPL" class="sk">–</span><span class="pill" id="hR">–</span></div>
-      <div class="pricerow" id="hPriceRow">
-        <div class="pr-l"><span class="pr-dot" aria-hidden="true"></span><span><span class="pr-k">Preu ASST</span><span class="pr-d" id="hPriceD">–</span></span></div>
-        <div class="pr-r"><span class="pr-v sk" id="hPriceV">–</span><span class="pr-u" id="hPriceU">–</span></div>
-      </div>
     </div>
     <div class="tiles">
       <div class="tile d-only"><span class="lbl" id="tCurL">Preu ASST</span><span class="v sk" id="tCur">–</span><span class="n" id="tCurN">–</span></div>
@@ -374,6 +376,15 @@ body,.card,.tile,.bcard,.tabbar,.sheet,.ibtn,.seg,input.f,.bwrap,.simwrap,.login
       <div class="tile hl d-only" id="tRt"><span class="lbl">Rentabilitat</span><span class="v sk" id="tR">–</span><span class="n">sobre l'invertit</span></div>
     </div>
     <div class="card chartcard">
+      <div class="chhead" id="hPriceRow" aria-live="polite">
+        <div class="ch-l">
+          <span class="pr-k"><span class="pr-dot" aria-hidden="true"></span>ASST · Strive</span>
+          <span class="pr-v sk" id="hPriceV">–</span>
+          <span class="ch-chg" id="cChg">–</span>
+          <span class="pr-d" id="hPriceD">–</span>
+        </div>
+        <span class="pr-u" id="hPriceU">–</span>
+      </div>
       <div class="chartrow"><h2>Preu d'ASST i les teves compres</h2>
         <div class="seg" role="group" aria-label="Període" id="rng">
           <button type="button" data-r="1" aria-pressed="false">1D</button>
@@ -652,11 +663,7 @@ function render(){
   setNum('hVal', T.val, v=>fmtE.format(v));
   setNum('hPL', T.pl, signE, 'sk '+cls(T.pl));
   $('hR').textContent = fmtP.format(T.r); $('hR').className = 'pill '+cls(T.pl);
-  setNum('hPriceV', T.cur, v=>fmtE.format(v));
-  $('hPriceU').textContent = (T.curO.est?'≈ ':'') + fmtU.format(T.curO.usd);
   const PL = priceLabel(T);
-  $('hPriceD').textContent = PL.long + (T.curO.live && isFinite(T.curO.dp) ? ` · ${T.curO.dp>0?'+':''}${fmtN.format(T.curO.dp)} % avui` : '');
-  $('hPriceRow').classList.toggle('is-live', PL.fresh);
   $('tCurL').textContent = `Preu ASST · ${PL.short}`;
   setNum('tCur', T.cur, v=>fmtE.format(v));
   $('tCurN').textContent = (T.curO.est?'≈ ':'') + fmtU.format(T.curO.usd);
@@ -729,10 +736,28 @@ Chart.Interaction.modes.cartera = function(chart, e){
 };
 const crosshair = { id:'crosshair', afterDatasetsDraw(c){ const a=c.tooltip&&c.tooltip.getActiveElements(); if(!a||!a.length||a[0].datasetIndex!==1) return;
   const x=a[0].element.x, {top,bottom}=c.chartArea, ctx=c.ctx; ctx.save(); ctx.strokeStyle=cssv('--muted'); ctx.globalAlpha=.6; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(x,top); ctx.lineTo(x,bottom); ctx.stroke(); ctx.restore(); } };
+// ---------- chart header: current price, or the price under the finger ----------
+let headDef=null, headBase=null;
+const RANGE_LBL={1:'avui',7:'1 setmana',30:'1 mes',90:'3 mesos',182:'6 mesos',0:'des de l\'inici'};
+function paintHead(p){
+  const row=$('hPriceRow'), was=row.classList.contains('scrub'); row.classList.toggle('scrub', !!p.scrub); row.classList.toggle('is-live', !p.scrub && !!p.fresh);
+  if(p.scrub || was){ const el=$('hPriceV'); cancelAnimationFrame(el._raf); el._v=p.eur; el.textContent=fmtE.format(p.eur); }
+  else setNum('hPriceV', p.eur, v=>fmtE.format(v));
+  $('hPriceU').textContent=(p.est?'≈ ':'')+fmtU.format(p.usd);
+  $('hPriceD').textContent=p.when;
+  if(headBase && headBase.eur>0){ const d=p.eur-headBase.eur, r=d/headBase.eur;
+    $('cChg').textContent=`${d>0?'+':''}${fmtE.format(d)} ${d>0?'▲':d<0?'▼':'·'} ${fmtN.format(Math.abs(r)*100)} % · ${headBase.lbl}`; $('cChg').className='ch-chg '+cls(d); }
+  else { $('cChg').textContent=''; }
+}
 function externalTip(ctx){
   const t=ctx.tooltip, el=$('tip');
-  if(!t || t.opacity===0){ el.style.opacity=0; return; }
+  if(!t || t.opacity===0){ el.style.opacity=0; if(headDef) paintHead(headDef); return; }
   const it=t.dataPoints && t.dataPoints[0]; if(!it) return;
+  if(it.datasetIndex!==0){ // scrubbing the line: the header follows the finger, no floating tooltip
+    const r=it.raw; el.style.opacity=0;
+    paintHead({eur:r.y, usd:r.usd, est:r.est, scrub:true, when: r.intra ? (r.open?'Obertura · ':'')+hhmm(r.t) : fd(r.d)+(r.live?' · '+hhmm(r.t):'')});
+    return; }
+  if(headDef) paintHead(headDef);
   let html;
   if(it.datasetIndex===0){ const b=it.raw.b, n=shares(b), now=n*totals().cur;
     html=`<b>Compra · ${fd(b.data)}</b><span class="num">Invertit: ${fmtE.format(b.valor)}</span><span class="num">Preu: ${fmtE.format(b.preu)} (≈ ${fmtU.format(b.preu*it.raw.fx)})</span><span class="num">Accions: ${fmtS.format(n)}</span><span class="num ${cls(now-b.valor)}">Ara val: ${fmtE.format(now)} (${signE(now-b.valor)})</span>`;
@@ -772,6 +797,13 @@ function drawChart(T, asc, maxV){
     minX = minX - DAY*.5;
   }
   $('lgAvg').hidden = dayMode; $('lgBuy').hidden = dayMode; $('lgPc').hidden = !(dayMode && pcEur);
+  { // header: base of the change = previous close (1D) or first point of the period
+    const bp = dayMode ? (pcEur ? {eur:pcEur} : (line[0] ? {eur:line[0].y} : null)) : (line.find(p=>p.x>=minX+DAY*.5) || line[0]);
+    headBase = bp ? {eur: bp.eur!=null ? bp.eur : bp.y, lbl: RANGE_LBL[range]} : null;
+    const PL=priceLabel(T);
+    headDef = {eur:T.cur, usd:T.curO.usd, est:T.curO.est, fresh:PL.fresh, when: PL.long};
+    if(!$('hPriceRow').classList.contains('scrub')) paintHead(headDef);
+  }
   const lo=Math.min(...vis), hi=Math.max(...vis), pad=(hi-lo)*.12||1;
   const data={datasets:[
     {type:'bubble',label:'Compres',data:bub,backgroundColor:acc+'EB',borderColor:surf,borderWidth:1.5,hoverBorderColor:ink,hoverBorderWidth:2.5,hoverRadius:4,order:0,
@@ -797,7 +829,12 @@ function drawChart(T, asc, maxV){
   if(chart){ chart.data=data; chart.options=options; chart.update(animMode==='none'?'none':undefined); }
   else chart=new Chart($('chart'),{data,options,plugins:[crosshair]});
 }
-$('chartbox').addEventListener('touchend',()=>setTimeout(()=>{ if(chart){ chart.setActiveElements([]); chart.tooltip.setActiveElements([],{x:0,y:0}); chart.update('none'); $('tip').style.opacity=0; } },2500));
+let tipT;
+$('chartbox').addEventListener('touchend',()=>{ clearTimeout(tipT);
+  // finger lifted: the line scrub ends at once; a purchase card stays a moment so it can be read
+  const onBubble = $('tip').style.opacity==='1';
+  tipT=setTimeout(()=>{ if(chart){ chart.setActiveElements([]); chart.tooltip.setActiveElements([],{x:0,y:0}); chart.update('none'); } $('tip').style.opacity=0; if(headDef) paintHead(headDef); }, onBubble?2500:250); });
+$('chartbox').addEventListener('mouseleave',()=>{ if(headDef) paintHead(headDef); });
 document.querySelectorAll('#rng button').forEach(b=>b.addEventListener('click',()=>{ haptic(); range=+b.dataset.r; chartMode='range'; document.querySelectorAll('#rng button').forEach(x=>x.setAttribute('aria-pressed',x===b)); render(); }));
 let rzT; addEventListener('resize',()=>{ clearTimeout(rzT); rzT=setTimeout(()=>{ render(); placeThumbs(); placeInd(); },200); });
 
@@ -1054,7 +1091,7 @@ $('updBtn').addEventListener('click', async ()=>{
       const o=have.get(d); if(o && Math.abs(+o.usd-usd)<5e-5 && (f.est || !o.fx_est)) continue;
       rows.push({user_id:user.id, data:d, usd:+usd.toFixed(4), fx:+f.fx.toFixed(5), eur:+(usd/f.fx).toFixed(4), fx_est:f.est, font:'Alpha Vantage'});
     }
-    if(rows.length){ const {error}=await sb.from('preus').upsert(rows); if(error){ toast("No s'han pogut desar els preus: "+error.message); return; } chartMode='range'; await loadData(); flash(['hPriceV','hVal','tCur','tVal']); }
+    if(rows.length){ const {error}=await sb.from('preus').upsert(rows); if(error){ toast("No s'han pogut desar els preus: "+error.message); return; } chartMode='range'; await loadData(); flash(['hVal','tCur','tVal']); }
     btn.classList.add('done'); haptic(14); setTimeout(()=>btn.classList.remove('done'),1600);
     const lastD=Object.keys(ts1).sort().pop();
     const T=totals();
@@ -1100,7 +1137,7 @@ async function refreshLive(loud){
     const f=await getLiveFx(), prev=live && live.usd;
     live={usd:q.c, dp:q.dp, o:q.o, pc:q.pc, t:q.t*1000, day:nyDay(q.t*1000), fx:f.fx, fxEst:f.est, eur:q.c/f.fx};
     saveTick(live.day, {t:live.t, usd:q.c, eur:q.c/f.fx});
-    render(); if(prev!==undefined && prev!==null && prev!==q.c) flash(['hPriceV','tCur']);
+    render(); if(prev!==undefined && prev!==null && prev!==q.c) flash(['tCur']);
     return true;
   }catch(e){ if(loud) toast("No s'ha pogut connectar amb Finnhub. Comprova la connexió."); return false; }
   finally{ liveBusy=false; }
