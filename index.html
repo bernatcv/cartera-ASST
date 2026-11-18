@@ -84,8 +84,8 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
 .rngwrap .seg{flex:1}
 .ibtn.small{width:40px;height:40px;border-radius:10px;flex:none}
 .ibtn.small svg{width:18px;height:18px}
-:root{--up:#16A34A;--down:#E5484D}
-:root[data-theme="dark"]{--up:#22C55E;--down:#FF5A5F}
+:root{--up:#16A34A;--down:#E5484D;--lc1:#7C5CFF;--lc2:#3B6BF0}
+:root[data-theme="dark"]{--up:#22C55E;--down:#FF5A5F;--lc1:#A78BFF;--lc2:#6F9BFF}
 .chhead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:2px 4px 0}
 .ch-l{display:grid;gap:2px;min-width:0}
 .ch-chg{font-family:var(--mono);font-size:13px;font-weight:600}
@@ -111,7 +111,7 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
 .chartbox{position:relative;height:240px;touch-action:pan-y}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11px;color:var(--muted);padding:0 4px}
 .legend span{display:inline-flex;align-items:center;gap:6px}
-.sw-l{width:18px;height:2px;background:var(--ink)} .sw-a{width:18px;border-top:2px dotted var(--muted)} .sw-d{width:10px;height:10px;border-radius:50%;background:var(--accent)} .sw-s{width:18px;border-top:2px dashed var(--accent)}
+.sw-l{width:18px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--lc1),var(--lc2))} .sw-a{width:18px;border-top:2px dotted var(--muted)} .sw-d{width:10px;height:10px;border-radius:50%;background:var(--accent)} .sw-s{width:18px;border-top:2px dashed var(--accent)}
 .tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:12px;box-shadow:0 6px 20px rgba(0,0,0,.14);white-space:nowrap;z-index:5;transition:opacity .1s}
 .tip b{display:block;font-size:13px;margin-bottom:2px}
 .tip .num{display:block}
@@ -771,9 +771,23 @@ Chart.Interaction.modes.cartera = function(chart, e){
 const crosshair = { id:'crosshair', afterDraw(c){ const a=c.tooltip&&c.tooltip.getActiveElements(); if(!a||!a.length) return;
   const le=a.find(e=>e.datasetIndex===1)||a[0], raw=c.data.datasets[le.datasetIndex].data[le.index]||{};
   const x=le.element.x, y=le.element.y, {left,right,top,bottom}=c.chartArea, ctx=c.ctx, ink=cssv('--ink'), surf=cssv('--surface');
-  ctx.save(); ctx.strokeStyle=cssv('--muted'); ctx.globalAlpha=.75; ctx.setLineDash([3,3]); ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(x,top); ctx.lineTo(x,bottom); ctx.moveTo(left,y); ctx.lineTo(right,y); ctx.stroke(); ctx.globalAlpha=1; ctx.setLineDash([]);
-  if(raw.y!=null) tagAt(ctx, right+2, y, fmtN.format(raw.y), ink, surf, c.width-right-2);
+  ctx.save();
+  if(chartStyle!=='velas'){
+    // soft vertical beam + glowing halo on the point
+    const lc=cssv('--lc2'), g=ctx.createLinearGradient(0,top,0,bottom); g.addColorStop(0,lc+'00'); g.addColorStop(.5,lc+'99'); g.addColorStop(1,lc+'00');
+    ctx.strokeStyle=g; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(x,top); ctx.lineTo(x,bottom); ctx.stroke();
+    if(le.datasetIndex===1){
+      const h=ctx.createRadialGradient(x,y,0,x,y,22); h.addColorStop(0,lc+'59'); h.addColorStop(.6,lc+'1F'); h.addColorStop(1,lc+'00');
+      ctx.fillStyle=h; ctx.beginPath(); ctx.arc(x,y,22,0,Math.PI*2); ctx.fill();
+      ctx.shadowColor=lc+'99'; ctx.shadowBlur=10; ctx.fillStyle=lc; ctx.beginPath(); ctx.arc(x,y,5.5,0,Math.PI*2); ctx.fill();
+      ctx.shadowBlur=0; ctx.strokeStyle=surf; ctx.lineWidth=2.5; ctx.stroke();
+    }
+    if(raw.y!=null) tagAt(ctx, right+2, y, fmtN.format(raw.y), lc, '#FFFFFF', c.width-right-2);
+  } else {
+    ctx.strokeStyle=cssv('--muted'); ctx.globalAlpha=.75; ctx.setLineDash([3,3]); ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(x,top); ctx.lineTo(x,bottom); ctx.moveTo(left,y); ctx.lineTo(right,y); ctx.stroke(); ctx.globalAlpha=1; ctx.setLineDash([]);
+    if(raw.y!=null) tagAt(ctx, right+2, y, fmtN.format(raw.y), ink, surf, c.width-right-2);
+  }
   const lbl = raw.intra ? hhmm(raw.t) : (raw.d ? fd(raw.d) : '');
   if(lbl){ ctx.font='600 11px "IBM Plex Mono", monospace'; const w=ctx.measureText(lbl).width+12, h=18; let bx=Math.max(left, Math.min(right-w, x-w/2));
     ctx.fillStyle=ink; ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(bx, bottom+3, w, h, 4); else ctx.rect(bx,bottom+3,w,h); ctx.fill();
@@ -796,6 +810,9 @@ function paintStyleBtn(){ const b=$('styleBtn'); b.innerHTML = chartStyle==='vel
 $('styleBtn').addEventListener('click',()=>{ haptic(); chartStyle = chartStyle==='velas' ? 'linia' : 'velas'; try{ localStorage.setItem('estilGrafic',chartStyle); }catch(e){} paintStyleBtn(); chartMode='range'; render(); });
 paintStyleBtn();
 // candles drawn under the purchase bubbles
+const glowPlugin = { id:'glow',
+  beforeDatasetDraw(c,args){ if(args.index!==1 || chartStyle==='velas') return; const ctx=c.ctx; ctx.save(); ctx.shadowColor=cssv('--lc2')+'73'; ctx.shadowBlur=14; ctx.shadowOffsetY=5; },
+  afterDatasetDraw(c,args){ if(args.index!==1 || chartStyle==='velas') return; c.ctx.restore(); } };
 const candlePlugin = { id:'candles', beforeDatasetsDraw(c){
   if(chartStyle!=='velas' || !candles.length) return;
   const xs=c.scales.x, ys=c.scales.y, ctx=c.ctx, {left,right,top,bottom}=c.chartArea;
@@ -914,12 +931,17 @@ function drawChart(T, asc, maxV){
   }
   const lo=Math.min(...vis), hi=Math.max(...vis), pad=(hi-lo)*.08||1;
   const velas = chartStyle==='velas' && candles.length>0;
+  const lc1=cssv('--lc1'), lc2=cssv('--lc2');
   curTag = headBase ? {v:T.cur, col: T.cur>=headBase.eur ? cssv('--up') : cssv('--down')} : {v:T.cur, col:ink};
   const data={datasets:[
     {type:'bubble',label:'Compres',data:bub,backgroundColor:acc+'EB',borderColor:surf,borderWidth:1.5,hoverBorderColor:ink,hoverBorderWidth:2.5,hoverRadius:4,order:0,
       animations: animMode==='none' ? {} : {radius:{from:0,duration:700,easing:'easeOutBack',delay:(c)=>c.type==='data'? (animMode==='first'?650:200)+c.dataIndex*110 : 0}}},
-    {type:'line',label:'Preu',data:line,borderColor: velas ? 'transparent' : ink,borderWidth:1.8,pointRadius:(c)=> !velas && dayMode && line.length<=2 ? 4 : 0,pointBackgroundColor:ink,pointHoverRadius: velas ? 0 : 5,pointHoverBackgroundColor:ink,pointHoverBorderColor:surf,pointHoverBorderWidth:2,tension:0,order:2,
-      fill: velas ? false : 'origin',backgroundColor:(c)=>{const {ctx,chartArea}=c.chart; if(!chartArea) return 'transparent'; const g=ctx.createLinearGradient(0,chartArea.top,0,chartArea.bottom); g.addColorStop(0,ink+'1A'); g.addColorStop(1,ink+'00'); return g;}},
+    {type:'line',label:'Preu',data:line,
+      borderColor: velas ? 'transparent' : (c)=>{ const {ctx,chartArea}=c.chart; if(!chartArea) return lc2; const g=ctx.createLinearGradient(chartArea.left,0,chartArea.right,0); g.addColorStop(0,lc1); g.addColorStop(1,lc2); return g; },
+      borderWidth:2.6, borderCapStyle:'round', borderJoinStyle:'round', cubicInterpolationMode:'monotone', tension:0.35,
+      pointRadius:(c)=> !velas && dayMode && line.length<=2 ? 4 : 0, pointBackgroundColor:lc2, pointHoverRadius:0, order:2,
+      fill: velas ? false : 'origin',
+      backgroundColor:(c)=>{const {ctx,chartArea}=c.chart; if(!chartArea) return 'transparent'; const g=ctx.createLinearGradient(0,chartArea.top,0,chartArea.bottom); g.addColorStop(0,lc2+'38'); g.addColorStop(.55,lc2+'10'); g.addColorStop(1,lc2+'00'); return g;}},
     {type:'line',label:'Mitjà',data: dayMode ? (pcEur?[{x:minX,y:pcEur},{x:maxX,y:pcEur}]:[]) : (T.avg?[{x:minX,y:T.avg},{x:lastX+DAY,y:T.avg}]:[]),borderColor:muted,borderWidth:1.5,borderDash:[2,4],pointRadius:0,pointHoverRadius:0,order:1},
     {type:'line',label:'Suposat',data:simEur!=null?[{x:minX,y:simEur},{x:maxX,y:simEur}]:[],borderColor:acc,borderWidth:2,borderDash:[6,4],pointRadius:0,pointHoverRadius:0,order:1}
   ]};
@@ -937,7 +959,7 @@ function drawChart(T, asc, maxV){
   };
   if(animMode!=='none'){ const cv=$('chart'); cv.classList.remove('reveal'); void cv.offsetWidth; cv.classList.add('reveal'); }
   if(chart){ chart.data=data; chart.options=options; chart.update(animMode==='none'?'none':undefined); }
-  else chart=new Chart($('chart'),{data,options,plugins:[candlePlugin,crosshair]});
+  else chart=new Chart($('chart'),{data,options,plugins:[glowPlugin,candlePlugin,crosshair]});
 }
 let tipT;
 $('chartbox').addEventListener('touchend',()=>{ clearTimeout(tipT);
