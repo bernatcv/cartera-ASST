@@ -80,6 +80,12 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
 .hero .big{font-family:var(--mono);font-size:38px;font-weight:600;letter-spacing:-.02em}
 .pill{font-family:var(--mono);font-size:12px;font-weight:600;border-radius:999px;padding:2px 8px}
 .pill.neg{background:var(--bad-bg)} .pill.pos{background:var(--good-bg)}
+.rngwrap{display:flex;gap:8px;align-items:center}
+.rngwrap .seg{flex:1}
+.ibtn.small{width:40px;height:40px;border-radius:10px;flex:none}
+.ibtn.small svg{width:18px;height:18px}
+:root{--up:#16A34A;--down:#E5484D}
+:root[data-theme="dark"]{--up:#22C55E;--down:#FF5A5F}
 .chhead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:2px 4px 0}
 .ch-l{display:grid;gap:2px;min-width:0}
 .ch-chg{font-family:var(--mono);font-size:13px;font-weight:600}
@@ -225,6 +231,7 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
   .chartcard{margin:0;padding:20px 22px;border:1px solid var(--line)}
   .chartbox{height:380px}
   .seg{max-width:440px;justify-self:end}
+  .rngwrap{justify-self:end}
   .chartrow{display:flex;justify-content:space-between;align-items:center;gap:12px}
   .chartrow h2{margin:0;font-size:18px}
   .sectionhead h2{font-size:18px}
@@ -389,6 +396,7 @@ body,.card,.tile,.bcard,.tabbar,.sheet,.ibtn,.seg,input.f,.bwrap,.simwrap,.login
         <span class="pr-u" id="hPriceU">–</span>
       </div>
       <div class="chartrow"><h2>Preu d'ASST i les teves compres</h2>
+        <div class="rngwrap"><button class="ibtn small" type="button" id="styleBtn" aria-label="Canvia entre espelmes i línia"></button>
         <div class="seg" role="group" aria-label="Període" id="rng">
           <button type="button" data-r="1" aria-pressed="false">1D</button>
           <button type="button" data-r="7" aria-pressed="false">1S</button>
@@ -396,7 +404,7 @@ body,.card,.tile,.bcard,.tabbar,.sheet,.ibtn,.seg,input.f,.bwrap,.simwrap,.login
           <button type="button" data-r="90" aria-pressed="true">3M</button>
           <button type="button" data-r="182" aria-pressed="false">6M</button>
           <button type="button" data-r="0" aria-pressed="false">Tot</button>
-        </div>
+        </div></div>
       </div>
       <div class="chartbox" id="chartbox"><canvas id="chart" aria-label="Preu d'ASST en euros amb les teves compres marcades"></canvas><div class="tip" id="tip" style="opacity:0"></div><div class="daynote" id="dayNote" hidden></div></div>
       <div class="legend">
@@ -760,8 +768,64 @@ Chart.Interaction.modes.cartera = function(chart, e){
     const dx=Math.abs(el.x-pos.x); if((same || dx<=4) && dx<bd){ bd=dx; best={datasetIndex:0,index:i,element:el}; } });
   return best ? [best, linePt] : [linePt];
 };
-const crosshair = { id:'crosshair', afterDatasetsDraw(c){ const a=c.tooltip&&c.tooltip.getActiveElements(); if(!a||!a.length) return;
-  const x=(a.find(e=>e.datasetIndex===1)||a[0]).element.x, {top,bottom}=c.chartArea, ctx=c.ctx; ctx.save(); ctx.strokeStyle=cssv('--muted'); ctx.globalAlpha=.6; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(x,top); ctx.lineTo(x,bottom); ctx.stroke(); ctx.restore(); } };
+const crosshair = { id:'crosshair', afterDraw(c){ const a=c.tooltip&&c.tooltip.getActiveElements(); if(!a||!a.length) return;
+  const le=a.find(e=>e.datasetIndex===1)||a[0], raw=c.data.datasets[le.datasetIndex].data[le.index]||{};
+  const x=le.element.x, y=le.element.y, {left,right,top,bottom}=c.chartArea, ctx=c.ctx, ink=cssv('--ink'), surf=cssv('--surface');
+  ctx.save(); ctx.strokeStyle=cssv('--muted'); ctx.globalAlpha=.75; ctx.setLineDash([3,3]); ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(x,top); ctx.lineTo(x,bottom); ctx.moveTo(left,y); ctx.lineTo(right,y); ctx.stroke(); ctx.globalAlpha=1; ctx.setLineDash([]);
+  if(raw.y!=null) tagAt(ctx, right+2, y, fmtN.format(raw.y), ink, surf, c.width-right-2);
+  const lbl = raw.intra ? hhmm(raw.t) : (raw.d ? fd(raw.d) : '');
+  if(lbl){ ctx.font='600 11px "IBM Plex Mono", monospace'; const w=ctx.measureText(lbl).width+12, h=18; let bx=Math.max(left, Math.min(right-w, x-w/2));
+    ctx.fillStyle=ink; ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(bx, bottom+3, w, h, 4); else ctx.rect(bx,bottom+3,w,h); ctx.fill();
+    ctx.fillStyle=surf; ctx.textBaseline='middle'; ctx.textAlign='left'; ctx.fillText(lbl, bx+6, bottom+3+h/2+.5); }
+  ctx.restore(); } };
+// ---------- daily open/high/low (Alpha Vantage, cached on this device) ----------
+let chartStyle = (()=>{ try{ return localStorage.getItem('estilGrafic')||'velas'; }catch(e){ return 'velas'; } })();
+let candles = [], curTag = null;
+function ohlcMap(){ try{ const c=JSON.parse(localStorage.getItem('ohlc')||'null'); return (c&&c.rows)||{}; }catch(e){ return {}; } }
+function saveOhlc(ts1){ const rows=ohlcMap(); for(const d of Object.keys(ts1)){ const o=ts1[d]; rows[d]=[+o['1. open'],+o['2. high'],+o['3. low'],+o['4. close']]; }
+  try{ localStorage.setItem('ohlc',JSON.stringify({t:Date.now(),rows})); }catch(e){} }
+async function loadOhlc(){
+  if(!avKey) return; let c=null; try{ c=JSON.parse(localStorage.getItem('ohlc')||'null'); }catch(e){}
+  if(c && Date.now()-c.t < 6*3600e3) return;
+  try{ const p=await av({function:'TIME_SERIES_DAILY',symbol:'ASST',outputsize:'compact'}); const s=p && p['Time Series (Daily)']; if(s){ saveOhlc(s); render(); } }catch(e){}
+}
+const ICON_CANDLE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M7 3v4M7 15v6M17 3v6M17 17v4"/><rect x="4.5" y="7" width="5" height="8" rx="1"/><rect x="14.5" y="9" width="5" height="8" rx="1"/></svg>';
+const ICON_LINE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l5-6 4 3 4-7 5 5"/></svg>';
+function paintStyleBtn(){ const b=$('styleBtn'); b.innerHTML = chartStyle==='velas' ? ICON_LINE : ICON_CANDLE; b.setAttribute('aria-label', chartStyle==='velas' ? 'Mostra la línia' : 'Mostra les espelmes'); }
+$('styleBtn').addEventListener('click',()=>{ haptic(); chartStyle = chartStyle==='velas' ? 'linia' : 'velas'; try{ localStorage.setItem('estilGrafic',chartStyle); }catch(e){} paintStyleBtn(); chartMode='range'; render(); });
+paintStyleBtn();
+// candles drawn under the purchase bubbles
+const candlePlugin = { id:'candles', beforeDatasetsDraw(c){
+  if(chartStyle!=='velas' || !candles.length) return;
+  const xs=c.scales.x, ys=c.scales.y, ctx=c.ctx, {left,right,top,bottom}=c.chartArea;
+  const up=cssv('--up'), dn=cssv('--down');
+  const step = candles.length>1 ? Math.abs(xs.getPixelForValue(candles[1].x)-xs.getPixelForValue(candles[0].x)) : 20;
+  const minStep = candles.reduce((m,k,i)=> i? Math.min(m, Math.abs(xs.getPixelForValue(k.x)-xs.getPixelForValue(candles[i-1].x))) : m, step);
+  const w = Math.max(1.5, Math.min(14, minStep*0.68));
+  ctx.save(); ctx.beginPath(); ctx.rect(left,top,right-left,bottom-top); ctx.clip();
+  for(const k of candles){
+    const x=xs.getPixelForValue(k.x); if(x<left-w || x>right+w) continue;
+    const yo=ys.getPixelForValue(k.o), yc=ys.getPixelForValue(k.c), yh=ys.getPixelForValue(k.h), yl=ys.getPixelForValue(k.l);
+    const col = k.c>=k.o ? up : dn; ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(Math.round(x)+.5, yh); ctx.lineTo(Math.round(x)+.5, yl); ctx.stroke();
+    const yTop=Math.min(yo,yc), hgt=Math.max(1, Math.abs(yc-yo));
+    ctx.fillRect(x-w/2, yTop, w, hgt);
+  }
+  ctx.restore();
+}, afterDraw(c){
+  // current price: dotted line + tag on the right axis
+  if(!curTag) return; const ys=c.scales.y, ctx=c.ctx, {left,right,top,bottom}=c.chartArea; const y=ys.getPixelForValue(curTag.v);
+  if(y<top || y>bottom) return;
+  ctx.save(); ctx.strokeStyle=curTag.col; ctx.setLineDash([1.5,3]); ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(left,y); ctx.lineTo(right,y); ctx.stroke(); ctx.setLineDash([]);
+  tagAt(ctx, right+2, y, fmtN.format(curTag.v), curTag.col, '#FFFFFF', c.width-right-2); ctx.restore();
+} };
+function tagAt(ctx, x, y, text, bg, fg, maxW){
+  ctx.font='600 11px "IBM Plex Mono", monospace'; const tw=ctx.measureText(text).width+10, h=18, w=Math.min(Math.max(tw, maxW||tw), Math.max(tw,maxW||tw));
+  ctx.fillStyle=bg; ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(x, y-h/2, w, h, 4); else ctx.rect(x, y-h/2, w, h); ctx.fill();
+  ctx.fillStyle=fg; ctx.textBaseline='middle'; ctx.textAlign='left'; ctx.fillText(text, x+5, y+.5);
+}
+
 // ---------- chart header: current price, or the price under the finger ----------
 let headDef=null, headBase=null;
 const RANGE_LBL={1:'avui',7:'1 setmana',30:'1 mes',90:'3 mesos',182:'6 mesos',0:'des de l\'inici'};
@@ -824,6 +888,23 @@ function drawChart(T, asc, maxV){
     minX = minX - DAY*.5;
   }
   $('lgAvg').hidden = dayMode; $('lgBuy').hidden = dayMode; $('lgPc').hidden = !(dayMode && pcEur);
+  // ---- candles ----
+  candles = [];
+  if(chartStyle==='velas'){
+    if(dayMode){
+      if(line.length>=2){ const B=15*60e3, o0=line[0].x; const m=new Map();
+        for(const p of line){ const k=Math.floor((p.x-o0)/B); const g=m.get(k); if(!g) m.set(k,{x:o0+k*B+B/2,o:p.y,h:p.y,l:p.y,c:p.y}); else { g.h=Math.max(g.h,p.y); g.l=Math.min(g.l,p.y); g.c=p.y; } }
+        candles=[...m.values()]; }
+    } else {
+      const om=ohlcMap(); let prev=null;
+      for(const p of line){ const v=T.s.find(s=>s[0]===p.d); const fx=v? v[1].fx : T.curO.fx; let k;
+        if(p.live && live && live.o>0 && live.h>0){ k={o:live.o/fx, h:Math.max(live.h/fx,p.y), l:Math.min(live.l/fx,p.y), c:p.y}; }
+        else if(om[p.d]){ const r=om[p.d]; k={o:r[0]/fx, h:Math.max(r[1]/fx,p.y), l:Math.min(r[2]/fx,p.y), c:p.y}; }
+        else { const o = prev!=null ? prev : p.y; k={o, h:Math.max(o,p.y), l:Math.min(o,p.y), c:p.y}; }
+        k.x=p.x; candles.push(k); prev=p.y; }
+    }
+    candles.filter(k=>k.x>=minX).forEach(k=>{ vis.push(k.h, k.l); });
+  }
   { // header: base of the change = previous close (1D) or first point of the period
     const bp = dayMode ? (pcEur ? {eur:pcEur} : (line[0] ? {eur:line[0].y} : null)) : (line.find(p=>p.x>=minX+DAY*.5) || line[0]);
     headBase = bp ? {eur: bp.eur!=null ? bp.eur : bp.y, lbl: RANGE_LBL[range]} : null;
@@ -831,12 +912,14 @@ function drawChart(T, asc, maxV){
     headDef = {eur:T.cur, usd:T.curO.usd, est:T.curO.est, fresh:PL.fresh, when: PL.long};
     if(!$('hPriceRow').classList.contains('scrub')) paintHead(headDef);
   }
-  const lo=Math.min(...vis), hi=Math.max(...vis), pad=(hi-lo)*.12||1;
+  const lo=Math.min(...vis), hi=Math.max(...vis), pad=(hi-lo)*.08||1;
+  const velas = chartStyle==='velas' && candles.length>0;
+  curTag = headBase ? {v:T.cur, col: T.cur>=headBase.eur ? cssv('--up') : cssv('--down')} : {v:T.cur, col:ink};
   const data={datasets:[
     {type:'bubble',label:'Compres',data:bub,backgroundColor:acc+'EB',borderColor:surf,borderWidth:1.5,hoverBorderColor:ink,hoverBorderWidth:2.5,hoverRadius:4,order:0,
       animations: animMode==='none' ? {} : {radius:{from:0,duration:700,easing:'easeOutBack',delay:(c)=>c.type==='data'? (animMode==='first'?650:200)+c.dataIndex*110 : 0}}},
-    {type:'line',label:'Preu',data:line,borderColor:ink,borderWidth:1.8,pointRadius:(c)=> dayMode && line.length<=2 ? 4 : 0,pointBackgroundColor:ink,pointHoverRadius:5,pointHoverBackgroundColor:ink,pointHoverBorderColor:surf,pointHoverBorderWidth:2,tension:0,order:2,
-      fill:'origin',backgroundColor:(c)=>{const {ctx,chartArea}=c.chart; if(!chartArea) return 'transparent'; const g=ctx.createLinearGradient(0,chartArea.top,0,chartArea.bottom); g.addColorStop(0,ink+'1A'); g.addColorStop(1,ink+'00'); return g;}},
+    {type:'line',label:'Preu',data:line,borderColor: velas ? 'transparent' : ink,borderWidth:1.8,pointRadius:(c)=> !velas && dayMode && line.length<=2 ? 4 : 0,pointBackgroundColor:ink,pointHoverRadius: velas ? 0 : 5,pointHoverBackgroundColor:ink,pointHoverBorderColor:surf,pointHoverBorderWidth:2,tension:0,order:2,
+      fill: velas ? false : 'origin',backgroundColor:(c)=>{const {ctx,chartArea}=c.chart; if(!chartArea) return 'transparent'; const g=ctx.createLinearGradient(0,chartArea.top,0,chartArea.bottom); g.addColorStop(0,ink+'1A'); g.addColorStop(1,ink+'00'); return g;}},
     {type:'line',label:'Mitjà',data: dayMode ? (pcEur?[{x:minX,y:pcEur},{x:maxX,y:pcEur}]:[]) : (T.avg?[{x:minX,y:T.avg},{x:lastX+DAY,y:T.avg}]:[]),borderColor:muted,borderWidth:1.5,borderDash:[2,4],pointRadius:0,pointHoverRadius:0,order:1},
     {type:'line',label:'Suposat',data:simEur!=null?[{x:minX,y:simEur},{x:maxX,y:simEur}]:[],borderColor:acc,borderWidth:2,borderDash:[6,4],pointRadius:0,pointHoverRadius:0,order:1}
   ]};
@@ -844,17 +927,17 @@ function drawChart(T, asc, maxV){
     animation: animMode==='none' ? false : {duration: animMode==='first'?900:550, easing:'easeOutQuart'},
 
     events:['mousemove','mouseout','click','touchstart','touchmove','touchend'],
-    interaction:{mode:'cartera',intersect:false}, layout:{padding:{top:16,right:desk?12:4}},
+    interaction:{mode:'cartera',intersect:false}, layout:{padding:{top:16,right:2,bottom:4}},
     scales:{
-      x:{type:'linear',min:minX,max:maxX,grid:{display:false},border:{color:grid},
+      x:{type:'linear',min:minX,max:maxX,grid:{color:grid,drawTicks:false},border:{color:grid},
         ticks:{color:muted,font:{family:'IBM Plex Mono',size:11},maxRotation:0,maxTicksLimit:desk?10:5,callback:xTick}},
-      y:{min: dayMode? +(lo-pad).toFixed(2) : Math.floor(lo-pad), max: dayMode? +(hi+pad).toFixed(2) : Math.ceil(hi+pad),grid:{color:grid},border:{display:false},ticks:{color:muted,font:{family:'IBM Plex Mono',size:11},maxTicksLimit:6,callback:v=> dayMode ? fmtN.format(v)+' €' : v+' €'}}
+      y:{position:'right',min: +(lo-pad).toFixed(2), max: +(hi+pad).toFixed(2),grid:{color:grid,drawTicks:false},border:{display:false},ticks:{color:muted,font:{family:'IBM Plex Mono',size:11},maxTicksLimit:7,padding:6,callback:v=>fmtN.format(v)}}
     },
     plugins:{legend:{display:false},tooltip:{enabled:false,external:externalTip}}
   };
   if(animMode!=='none'){ const cv=$('chart'); cv.classList.remove('reveal'); void cv.offsetWidth; cv.classList.add('reveal'); }
   if(chart){ chart.data=data; chart.options=options; chart.update(animMode==='none'?'none':undefined); }
-  else chart=new Chart($('chart'),{data,options,plugins:[crosshair]});
+  else chart=new Chart($('chart'),{data,options,plugins:[candlePlugin,crosshair]});
 }
 let tipT;
 $('chartbox').addEventListener('touchend',()=>{ clearTimeout(tipT);
@@ -1107,7 +1190,7 @@ $('updBtn').addEventListener('click', async ()=>{
     if(gotLive) await sleep(1300); // Alpha Vantage free: about 1 request per second
     let p1=await av({function:'TIME_SERIES_DAILY',symbol:'ASST',outputsize:'compact'});
     if(!p1['Time Series (Daily)']){ await sleep(2200); p1=await av({function:'TIME_SERIES_DAILY',symbol:'ASST',outputsize:'compact'}); }
-    const ts1=p1['Time Series (Daily)'];
+    const ts1=p1['Time Series (Daily)']; if(ts1) saveOhlc(ts1);
     if(!ts1){ if(!gotLive) toast("Alpha Vantage no ha donat preus: "+(avNote(p1)||'torna-ho a provar d\'aquí a un minut.')); else { btn.classList.add('done'); setTimeout(()=>btn.classList.remove('done'),1600); const T=totals(); toast(`Preu actualitzat: ${fmtU.format(T.curO.usd)} (${priceLabel(T).short}).`); } return; }
     await sleep(1500);
     let p2=null; try{ p2=await av({function:'FX_DAILY',from_symbol:'EUR',to_symbol:'USD'}); if(!p2['Time Series FX (Daily)']){ await sleep(2200); p2=await av({function:'FX_DAILY',from_symbol:'EUR',to_symbol:'USD'}); } }catch(e){}
@@ -1143,7 +1226,7 @@ async function loadData(){
   prices=p.data||[]; avKey=(g.data&&g.data.av_key)||''; fhKey=(g.data&&g.data.fh_key)||'';
   ampRatio = g.data && g.data.amp_ratio!=null ? +g.data.amp_ratio : null; ampDate = (g.data && g.data.amp_date) || null; showAmp();
   render(); $('appView').classList.remove('loading');
-  refreshLive();
+  refreshLive().then(()=>setTimeout(loadOhlc, 1500));
 }
 
 // ---------- live price (Finnhub) + live EUR/USD (Alpha Vantage, at most once an hour) ----------
@@ -1165,7 +1248,7 @@ async function refreshLive(loud){
     const q=await r.json();
     if(!(q && q.c>0 && q.t)){ if(loud) toast('Finnhub no ha donat cap preu per a ASST.'); return false; }
     const f=await getLiveFx(), prev=live && live.usd;
-    live={usd:q.c, dp:q.dp, o:q.o, pc:q.pc, t:q.t*1000, day:nyDay(q.t*1000), fx:f.fx, fxEst:f.est, eur:q.c/f.fx};
+    live={usd:q.c, dp:q.dp, o:q.o, h:q.h, l:q.l, pc:q.pc, t:q.t*1000, day:nyDay(q.t*1000), fx:f.fx, fxEst:f.est, eur:q.c/f.fx};
     saveTick(live.day, {t:live.t, usd:q.c, eur:q.c/f.fx});
     render(); if(prev!==undefined && prev!==null && prev!==q.c) flash(['tCur']);
     return true;
