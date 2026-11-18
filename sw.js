@@ -1,6 +1,6 @@
 // Service worker: guarda la "closca" de l'app perquè s'obri ràpid i sense connexió.
 // Les dades (Supabase) i els preus (Alpha Vantage) sempre es demanen a la xarxa.
-const VERSIO = 'cartera-v2';
+const VERSIO = 'cartera-v3';
 const CLOSCA = ['./', './index.html', './config.js', './manifest.webmanifest',
   './icones/icona-192.png', './icones/icona-512.png', './icones/apple-touch-icon.png'];
 self.addEventListener('install', e => {

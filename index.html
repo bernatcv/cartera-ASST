@@ -4,32 +4,37 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cartera ASST</title>
-<meta name="theme-color" content="#F3F4F6" id="themeColor">
+<meta name="theme-color" content="#000000" id="themeColor">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="ASST">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icones/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icones/icona-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
 /* Layout: phone = one tab at a time + bottom tab bar; ≥900px = one page (summary, chart, purchases | simulator) */
 :root{
-  --bg:#F3F4F6; --surface:#FFFFFF; --ink:#15171C; --muted:#626776; --line:#E3E5EA; --grid:#ECEEF2;
-  --accent:#F7931A; --accent-ink:#B4620A; --on-accent:#1A1205; --good:#16834F; --bad:#C2352B; --bad-bg:#FBE9E7; --good-bg:#E4F4EB;
-  --scrim:rgba(21,23,28,.45);
-  --display:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  /* light: warm cream variant of the same palette */
+  --bg:#F2EDE3; --surface:#FBF9F4; --ink:#161616; --muted:#6B665C; --line:#DCD5C7; --grid:rgba(22,22,22,.12);
+  --accent:#F7931A; --accent-ink:#B4620A; --on-accent:#000000; --good:#1E7E45; --bad:#C2352B; --bad-bg:#F6E1DC; --good-bg:#DDEFE3;
+  --cream:#F2EDE3; --pop:#FFFFFF; --field:#F6F2EA; --tick:#77726A; --buy:#161616; --chart2:#8A8478;
+  --scrim:rgba(0,0,0,.45);
+  --display:"IBM Plex Sans",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --serif:"Instrument Serif",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Sans",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
   --safe-b:env(safe-area-inset-bottom,0px); --safe-t:env(safe-area-inset-top,0px);
   color-scheme:light;
 }
 :root[data-theme="dark"]{
-  --bg:#101215; --surface:#181B20; --ink:#EEF0F4; --muted:#9097A6; --line:#2A2E36; --grid:#23272E;
-  --accent:#F7931A; --accent-ink:#FFB65C; --good:#3CC47F; --bad:#FF6B5E; --bad-bg:#3A1E1C; --good-bg:#143224;
-  --scrim:rgba(0,0,0,.6); color-scheme:dark;
+  /* black ground, #161616 cards, #333 hairlines, cream highlights, bitcoin orange */
+  --bg:#000000; --surface:#161616; --ink:#FFFFFF; --muted:#9A9A9A; --line:#333333; --grid:rgba(255,255,255,.14);
+  --accent:#F7931A; --accent-ink:#F7931A; --on-accent:#000000; --good:#2FA463; --bad:#F0524F; --bad-bg:rgba(240,82,79,.12); --good-bg:rgba(47,164,99,.14);
+  --cream:#F2EDE3; --pop:#242424; --field:#0B0B0B; --tick:#7A7A7A; --buy:#F2EDE3; --chart2:#A39D8F;
+  --scrim:rgba(0,0,0,.7); color-scheme:dark;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
@@ -84,8 +89,8 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
 .rngwrap .seg{flex:1}
 .ibtn.small{width:40px;height:40px;border-radius:10px;flex:none}
 .ibtn.small svg{width:18px;height:18px}
-:root{--up:#16A34A;--down:#E5484D;--lc1:#7C5CFF;--lc2:#3B6BF0}
-:root[data-theme="dark"]{--up:#22C55E;--down:#FF5A5F;--lc1:#A78BFF;--lc2:#6F9BFF}
+:root{--up:#1E7E45;--down:#D2403C;--lc1:#F7931A;--lc2:#F7931A}
+:root[data-theme="dark"]{--up:#2FA463;--down:#F0524F;--lc1:#F7931A;--lc2:#F7931A}
 .chhead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:2px 4px 0}
 .ch-l{display:grid;gap:2px;min-width:0}
 .ch-chg{font-family:var(--mono);font-size:13px;font-weight:600}
@@ -116,8 +121,8 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
 .tip b{display:block;font-size:13px;margin-bottom:2px}
 .tip .num{display:block}
 .daynote{position:absolute;left:12px;right:12px;bottom:34px;text-align:center;font-size:12px;color:var(--muted);background:color-mix(in srgb,var(--surface) 85%,transparent);border-radius:10px;padding:6px 10px;pointer-events:none;animation:fadeIn .4s var(--ease)}
-:root{--asst-c:#2F5BEA;--btc-c:#F7931A}
-:root[data-theme="dark"]{--asst-c:#7D9BFF}
+:root{--asst-c:#F7931A;--btc-c:#161616}
+:root[data-theme="dark"]{--asst-c:#F7931A;--btc-c:#F2EDE3}
 .pagenav{display:none}
 .duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .coin{background:var(--surface);border-radius:16px;padding:12px 14px;display:grid;gap:2px;min-width:0;box-shadow:inset 0 3px 0 var(--c)}
@@ -337,6 +342,117 @@ body,.card,.tile,.bcard,.tabbar,.sheet,.ibtn,.seg,input.f,.bwrap,.simwrap,.login
   .sheet.open{transform:translate(-50%,-50%) scale(1);opacity:1}
   .view.on{animation:none}
 }
+
+/* ================= SKIN: black ground, hairline cards, IBM Plex Sans + Instrument Serif ================= */
+body{font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased;font-feature-settings:"tnum" 1}
+.num,.v,.big,.pr-v,.calc,input.f{font-variant-numeric:tabular-nums}
+/* cards: #161616, 0.8px hairline, 14px corners */
+.card,.tile,.coin,.band,.bcard,.login form,.sumstrip{border-radius:14px}
+.card,.tile,.coin,.band,.bcard,.login form{background:var(--surface);border:.8px solid var(--line);box-shadow:none}
+.sheet{background:var(--surface);border-top:.8px solid var(--line)}
+@media (min-width:900px){ .bwrap,.simwrap{background:var(--surface);border:.8px solid var(--line);border-radius:14px} .sheet{border:.8px solid var(--line)} }
+.simwrap .simres .tile{background:var(--field)}
+.simcard{box-shadow:none;border-color:var(--line)}
+@media (min-width:900px){ .simwrap{box-shadow:none} }
+/* headings: serif display with an orange italic word; eyebrows in spaced uppercase */
+.brand h1,.login h1{font-family:var(--serif);font-weight:400;font-size:30px;letter-spacing:-.01em;line-height:1.05}
+.brand h1 em,.login h1 em{font-style:italic;color:var(--accent)}
+@media (min-width:900px){ .brand h1{font-size:42px} }
+.tk{border:0;padding:0;font-family:var(--display);font-size:11px;font-weight:500;letter-spacing:2.2px;text-transform:uppercase;color:var(--accent)}
+.sectionhead h2,.chartrow h2{font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.01em}
+.caps{color:var(--accent);font-weight:500;letter-spacing:2.2px;font-size:11px}
+/* labels: 11px uppercase, slightly spaced */
+.lbl,.tile .lbl,.coin .s,.sumstrip .lbl{font-size:11px;letter-spacing:.88px;text-transform:uppercase;color:var(--muted)}
+label.f{font-size:11px;letter-spacing:.88px;text-transform:uppercase;font-weight:500}
+.n,.tile .n,.u,.coin .u,.pr-u,.pr-d,.hint{font-family:var(--display)}
+.tile .n,.coin .u{font-size:12px;color:var(--muted)}
+/* numbers: bold Plex Sans */
+.hero .big{font-family:var(--display);font-weight:700;font-size:44px;letter-spacing:-.02em}
+.tile .v,.coin .v{font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.01em}
+.sumstrip .v,.bcard .r,.so .val{font-family:var(--display);font-weight:600}
+.pr-v{font-family:var(--display);font-weight:700;font-size:40px;letter-spacing:-.02em}
+.pr-k{font-size:11px;font-weight:500;letter-spacing:2.2px;text-transform:uppercase;color:var(--accent)}
+.ch-chg,.plrow,.coin .r{font-family:var(--display);font-weight:600}
+@media (min-width:900px){ .tile .v{font-size:24px} .pr-v{font-size:48px} }
+/* badges */
+.pill{font-family:var(--display);font-size:11px;font-weight:600;border-radius:6px;padding:2px 8px;border:.8px solid currentColor;background:transparent!important}
+/* segmented controls: dark well, cream active pill */
+.seg{background:var(--field);border:.8px solid var(--line);border-radius:8px;padding:3px}
+.seg button{color:var(--ink);font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;min-height:30px;border-radius:5px}
+.seg button[aria-pressed="true"]{color:#161616}
+.seg .thumb{background:var(--cream);border-radius:5px;box-shadow:none;top:3px;bottom:3px}
+.seg.cur button{text-transform:none;font-size:15px}
+:root:not([data-theme="dark"]) .seg .thumb{background:#161616}
+:root:not([data-theme="dark"]) .seg button[aria-pressed="true"]{color:#F2EDE3}
+/* buttons */
+.btn{border-radius:6px;background:var(--cream);color:#161616;font-weight:600;letter-spacing:.3px}
+:root:not([data-theme="dark"]) .btn{background:#161616;color:#F2EDE3}
+.btn.accent{background:transparent;color:var(--accent);border:.8px solid var(--accent);text-transform:uppercase;letter-spacing:1.6px;font-size:13px}
+.btn.ghost{background:transparent;color:var(--ink);border:.8px solid var(--line)}
+.btn.danger{background:transparent}
+.ibtn{background:var(--surface);border:.8px solid var(--line);border-radius:10px;color:var(--ink)}
+@media (hover:hover){ .ibtn:hover{border-color:var(--accent);box-shadow:none} .btn:hover{box-shadow:none;filter:brightness(1.06)} .tile:hover,.bcard:hover{box-shadow:none;border-color:#4a4a4a} }
+.chip{background:var(--field);border:.8px solid var(--line);border-radius:6px;font-size:12px;font-weight:600;color:var(--ink)}
+@media (hover:hover){ .chip:hover{border-color:var(--accent);box-shadow:none} }
+/* inputs */
+input.f{background:var(--field);border:.8px solid var(--line);border-radius:8px;font-family:var(--display);font-weight:600}
+input.f:focus{outline:1px solid var(--accent);border-color:var(--accent)}
+.calc{font-family:var(--display);font-weight:700;background:var(--field);border:.8px dashed var(--accent);border-radius:8px}
+.calc small{color:var(--accent)}
+/* bottom tab bar: like the SATA / SATS / ASST / BTC switcher */
+.tabbar{background:#000;border-top:.8px solid var(--line)}
+:root:not([data-theme="dark"]) .tabbar{background:var(--surface)}
+.tabbar button{color:var(--muted);font-size:11px;font-weight:500;letter-spacing:.3px}
+.tabbar button[aria-current="page"]{color:var(--ink);font-weight:600}
+.tabbar .ind{background:rgba(0,0,0,.3);border:1px solid var(--accent);border-radius:10px}
+:root:not([data-theme="dark"]) .tabbar .ind{background:transparent}
+/* page switch on desktop, same switcher look */
+.pagenav{border-radius:14px;padding:3px}
+.pagenav .thumb{background:rgba(0,0,0,.3)!important;border:1px solid var(--accent);border-radius:9px}
+.pagenav button[aria-pressed="true"]{color:var(--ink)!important}
+.pagenav button{font-size:13px;letter-spacing:.3px;text-transform:none}
+:root:not([data-theme="dark"]) .pagenav .thumb{background:transparent!important}
+/* chart header like "$93.21 · Price vs. Stated Amount" */
+.chhead{padding:4px 4px 2px}
+.chhead .pr-d{font-size:13px;color:var(--ink);opacity:.9}
+.is-live .pr-dot{background:var(--good)}
+/* tooltips like the dashboard popover */
+.tip{background:var(--pop);border:.8px solid var(--line);border-radius:10px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.45);font-family:var(--display);font-size:13px;color:var(--ink)}
+.tip b{font-weight:600;font-size:14px;margin-bottom:6px}
+.tip .num{font-family:var(--display);font-weight:500;display:flex;justify-content:space-between;gap:16px}
+.tip .row{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:4px}
+.tip .row span:first-child{display:flex;align-items:center;gap:8px;color:var(--ink);opacity:.9}
+.tip .row b{margin:0;font-size:13px;font-weight:700}
+.tip .sep{height:.8px;background:var(--line);margin:9px 0 6px}
+.tip i.sw{display:inline-block;width:12px;height:0;border-top:2px solid var(--accent)}
+.tip i.sw.d{border-top:2px dashed var(--btc-c)}
+/* legend */
+.legend{font-size:12px;color:var(--ink);opacity:.85}
+.sw-l{background:var(--accent)!important}
+.sw-a{border-top:2px dotted var(--ink)!important;opacity:.8}
+.sw-d{background:var(--buy)!important;border:1.5px solid var(--accent)}
+.sw-s{border-top:2px dashed var(--chart2)!important}
+.sw-asst{background:var(--asst-c)} .sw-btc{height:0!important;background:none!important;border-top:2px dashed var(--btc-c)}
+/* purchase dots follow the bubble colour */
+.bcard .dot i{background:var(--buy);box-shadow:0 0 0 1.5px var(--accent)}
+.btable td i{background:var(--buy)!important;box-shadow:0 0 0 1.5px var(--accent)}
+/* BTC vs ASST cards */
+.coin{box-shadow:none;border-top:2px solid var(--c)}
+.coin .nm{font-size:11px;font-weight:500;letter-spacing:2.2px;text-transform:uppercase}
+.band b{font-family:var(--display);font-weight:700}
+/* toast */
+.toast{background:var(--pop);color:var(--ink);border:.8px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+/* skeleton on dark */
+.loading .sk{background:linear-gradient(90deg,#1c1c1c 0%,#2a2a2a 40%,#1c1c1c 80%);background-size:300% 100%}
+:root:not([data-theme="dark"]) .loading .sk{background:linear-gradient(90deg,#E8E1D3 0%,#F4EFE6 40%,#E8E1D3 80%);background-size:300% 100%}
+.daynote{background:color-mix(in srgb,var(--surface) 88%,transparent);font-family:var(--display)}
+/* sentences stay in normal case */
+#bSub,#ampNote,#ampTheo,#ampDate,#simShNote,#bDiffN,.band .lbl,#bAs,#bBs{text-transform:none;letter-spacing:0;font-size:12px}
+/* title on one line; the eyebrow goes under it on phones */
+.brand h1{white-space:nowrap}
+@media (max-width:899px){ .brand{flex-direction:column;align-items:flex-start;gap:4px} .brand h1{font-size:28px} }
+@media (min-width:900px){ .brand{align-items:baseline;gap:14px} .pagenav{flex:none;align-self:center} .pagenav button{flex:none;padding:0 16px;white-space:nowrap} }
+#tCurL{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -346,7 +462,7 @@ body,.card,.tile,.bcard,.tabbar,.sheet,.ibtn,.seg,input.f,.bwrap,.simwrap,.login
 <div class="login" id="loginView" hidden>
   <form id="loginForm" autocomplete="on">
     <img class="logo" src="icones/icona-192.png" alt="">
-    <h1>Cartera ASST</h1>
+    <h1><em>Cartera</em> ASST</h1>
     <p class="muted" style="margin:0">Entra amb el correu i la contrasenya del teu usuari de Supabase.</p>
     <label class="f" for="lEmail">Correu<input class="f" id="lEmail" type="email" autocomplete="username" required></label>
     <label class="f" for="lPass">Contrasenya<input class="f" id="lPass" type="password" autocomplete="current-password" required></label>
@@ -359,7 +475,7 @@ body,.card,.tile,.bcard,.tabbar,.sheet,.ibtn,.seg,input.f,.bwrap,.simwrap,.login
 <!-- ============ APP ============ -->
 <div class="app loading" id="appView" hidden>
   <div class="top">
-    <div class="brand"><h1><span class="m-title" id="pgTitle">Cartera</span></h1><span class="tk" id="pgTk">ASST</span>
+    <div class="brand"><h1><span class="m-title" id="pgTitle"><em>Cartera</em> ASST</span></h1><span class="tk" id="pgTk">Nasdaq: ASST</span>
       <div class="seg pagenav" role="group" aria-label="Pàgina" id="pageNav"><button type="button" data-p="cartera" aria-pressed="true">Cartera</button><button type="button" data-p="btc" aria-pressed="false">BTC vs ASST</button></div></div>
     <div class="iconbtns">
       <button class="ibtn" type="button" id="themeBtn" aria-label="Canvia el tema"></button>
@@ -500,9 +616,10 @@ body,.card,.tile,.bcard,.tabbar,.sheet,.ibtn,.seg,input.f,.bwrap,.simwrap,.login
       <div class="card amp">
         <div class="hd"><b>Amplification ratio</b><a class="lbl" href="https://strive.com/treasury?tab=asst" style="color:inherit">strive.com/treasury</a></div>
         <div class="grid2">
-          <label class="f" for="ampVal">Segons Strive<input class="f num" id="ampVal" type="number" step="0.01" min="0" inputmode="decimal" placeholder="–"></label>
+          <label class="f" for="ampVal">Segons Strive (%)<input class="f num" id="ampVal" type="number" step="0.1" min="0" max="99.9" inputmode="decimal" placeholder="75,5"></label>
           <div style="display:grid;gap:6px"><span class="lbl">Real del període</span><span class="big" id="ampReal">–</span></div>
         </div>
+        <span class="lbl" id="ampTheo"></span>
         <span class="lbl" id="ampNote">Real = rendiment d'ASST ÷ rendiment de BTC en el període triat.</span>
         <span class="lbl" id="ampDate"></span>
       </div>
@@ -611,12 +728,12 @@ document.addEventListener('pointerdown',e=>{ if(reduced()) return; const b=e.tar
 // ---------- theme ----------
 const SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
 const MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
-function getPref(){ try{ return localStorage.getItem('tema') || 'auto'; }catch(e){ return 'auto'; } }
+function getPref(){ try{ return localStorage.getItem('tema') || 'dark'; }catch(e){ return 'dark'; } }
 function applyTheme(){
   const pref = getPref();
   const dark = pref==='dark' || (pref==='auto' && matchMedia('(prefers-color-scheme: dark)').matches);
   document.documentElement.dataset.theme = dark ? 'dark' : 'light';
-  $('themeColor').setAttribute('content', dark ? '#101215' : '#F3F4F6');
+  $('themeColor').setAttribute('content', dark ? '#000000' : '#F2EDE3');
   $('themeBtn').innerHTML = dark ? SUN : MOON;
   $('themeBtn').setAttribute('aria-label', dark ? 'Canvia a tema clar' : 'Canvia a tema fosc');
   document.querySelectorAll('#themeSeg button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.t===pref));
@@ -774,24 +891,24 @@ const crosshair = { id:'crosshair', afterDraw(c){ const a=c.tooltip&&c.tooltip.g
   ctx.save();
   if(chartStyle!=='velas'){
     // soft vertical beam + glowing halo on the point
-    const lc=cssv('--lc2'), g=ctx.createLinearGradient(0,top,0,bottom); g.addColorStop(0,lc+'00'); g.addColorStop(.5,lc+'99'); g.addColorStop(1,lc+'00');
-    ctx.strokeStyle=g; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(x,top); ctx.lineTo(x,bottom); ctx.stroke();
+    const lc=cssv('--lc2');
+    ctx.strokeStyle=cssv('--ink'); ctx.globalAlpha=.35; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(Math.round(x)+.5,top); ctx.lineTo(Math.round(x)+.5,bottom); ctx.stroke(); ctx.globalAlpha=1;
     if(le.datasetIndex===1){
       const h=ctx.createRadialGradient(x,y,0,x,y,22); h.addColorStop(0,lc+'59'); h.addColorStop(.6,lc+'1F'); h.addColorStop(1,lc+'00');
       ctx.fillStyle=h; ctx.beginPath(); ctx.arc(x,y,22,0,Math.PI*2); ctx.fill();
       ctx.shadowColor=lc+'99'; ctx.shadowBlur=10; ctx.fillStyle=lc; ctx.beginPath(); ctx.arc(x,y,5.5,0,Math.PI*2); ctx.fill();
       ctx.shadowBlur=0; ctx.strokeStyle=surf; ctx.lineWidth=2.5; ctx.stroke();
     }
-    if(raw.y!=null) tagAt(ctx, right+2, y, fmtN.format(raw.y), lc, '#FFFFFF', c.width-right-2);
+    if(raw.y!=null) tagAt(ctx, right+2, y, fmtN.format(raw.y), lc, '#000000', c.width-right-2);
   } else {
     ctx.strokeStyle=cssv('--muted'); ctx.globalAlpha=.75; ctx.setLineDash([3,3]); ctx.lineWidth=1;
     ctx.beginPath(); ctx.moveTo(x,top); ctx.lineTo(x,bottom); ctx.moveTo(left,y); ctx.lineTo(right,y); ctx.stroke(); ctx.globalAlpha=1; ctx.setLineDash([]);
     if(raw.y!=null) tagAt(ctx, right+2, y, fmtN.format(raw.y), ink, surf, c.width-right-2);
   }
   const lbl = raw.intra ? hhmm(raw.t) : (raw.d ? fd(raw.d) : '');
-  if(lbl){ ctx.font='600 11px "IBM Plex Mono", monospace'; const w=ctx.measureText(lbl).width+12, h=18; let bx=Math.max(left, Math.min(right-w, x-w/2));
-    ctx.fillStyle=ink; ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(bx, bottom+3, w, h, 4); else ctx.rect(bx,bottom+3,w,h); ctx.fill();
-    ctx.fillStyle=surf; ctx.textBaseline='middle'; ctx.textAlign='left'; ctx.fillText(lbl, bx+6, bottom+3+h/2+.5); }
+  if(lbl){ ctx.font='600 11px "IBM Plex Sans", system-ui, sans-serif'; const w=ctx.measureText(lbl).width+12, h=18; let bx=Math.max(left, Math.min(right-w, x-w/2));
+    ctx.fillStyle=cssv('--pop'); ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(bx, bottom+3, w, h, 4); else ctx.rect(bx,bottom+3,w,h); ctx.fill();
+    ctx.strokeStyle=cssv('--line'); ctx.lineWidth=.8; ctx.stroke(); ctx.fillStyle=ink; ctx.textBaseline='middle'; ctx.textAlign='left'; ctx.fillText(lbl, bx+6, bottom+3+h/2+.5); }
   ctx.restore(); } };
 // ---------- daily open/high/low (Alpha Vantage, cached on this device) ----------
 let chartStyle = (()=>{ try{ return localStorage.getItem('estilGrafic')||'velas'; }catch(e){ return 'velas'; } })();
@@ -838,7 +955,7 @@ const candlePlugin = { id:'candles', beforeDatasetsDraw(c){
   tagAt(ctx, right+2, y, fmtN.format(curTag.v), curTag.col, '#FFFFFF', c.width-right-2); ctx.restore();
 } };
 function tagAt(ctx, x, y, text, bg, fg, maxW){
-  ctx.font='600 11px "IBM Plex Mono", monospace'; const tw=ctx.measureText(text).width+10, h=18, w=Math.min(Math.max(tw, maxW||tw), Math.max(tw,maxW||tw));
+  ctx.font='600 11px "IBM Plex Sans", system-ui, sans-serif'; const tw=ctx.measureText(text).width+10, h=18, w=Math.min(Math.max(tw, maxW||tw), Math.max(tw,maxW||tw));
   ctx.fillStyle=bg; ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(x, y-h/2, w, h, 4); else ctx.rect(x, y-h/2, w, h); ctx.fill();
   ctx.fillStyle=fg; ctx.textBaseline='middle'; ctx.textAlign='left'; ctx.fillText(text, x+5, y+.5);
 }
@@ -867,7 +984,7 @@ function externalTip(ctx){
   const it=bubIt;
   let html;
   if(it.datasetIndex===0){ const b=it.raw.b, n=shares(b), now=n*totals().cur;
-    html=`<b>Compra · ${fd(b.data)}</b><span class="num">Invertit: ${fmtE.format(b.valor)}</span><span class="num">Preu: ${fmtE.format(b.preu)} (≈ ${fmtU.format(b.preu*it.raw.fx)})</span><span class="num">Accions: ${fmtS.format(n)}</span><span class="num ${cls(now-b.valor)}">Ara val: ${fmtE.format(now)} (${signE(now-b.valor)})</span>`;
+    html=`<b>Compra · ${fd(b.data)}</b><div class="row"><span>Invertit</span><b>${fmtE.format(b.valor)}</b></div><div class="row"><span>Preu</span><b>${fmtE.format(b.preu)} <span class="muted" style="font-weight:500">≈ ${fmtU.format(b.preu*it.raw.fx)}</span></b></div><div class="row"><span>Accions</span><b>${fmtS.format(n)}</b></div><div class="sep"></div><div class="row"><span>Ara val</span><b class="${cls(now-b.valor)}">${fmtE.format(now)} (${signE(now-b.valor)})</b></div>`;
   } else { const r=it.raw; html=`<b>${r.intra ? (r.open?'Obertura · ':'')+hhmm(r.t) : fd(r.d)+(r.live?' · '+hhmm(r.t):'')}</b><span class="num">${r.intra?'Preu':(r.live?'Últim preu':'Tancament')}: ${fmtE.format(r.y)}</span><span class="num">En dòlars: ${r.est?'≈ ':''}${fmtU.format(r.usd)}</span>`; }
   el.innerHTML=html; el.style.opacity=1;
   const box=$('chartbox'), w=el.offsetWidth, h=el.offsetHeight;
@@ -878,7 +995,7 @@ function externalTip(ctx){
 }
 function drawChart(T, asc, maxV){
   const animMode = reduced() ? 'none' : chartMode; chartMode = 'none';
-  const ink=cssv('--ink'), grid=cssv('--grid'), muted=cssv('--muted'), acc=cssv('--accent'), surf=cssv('--surface');
+  const ink=cssv('--ink'), grid=cssv('--grid'), muted=cssv('--tick'), acc=cssv('--accent'), surf=cssv('--surface'), buyC=cssv('--buy'), ch2=cssv('--chart2');
   const desk=isDesk(), dayMode = range===1;
   let line, lastX, minX, maxX, bub, vis, pcEur=null, xTick;
   if(dayMode){
@@ -934,16 +1051,16 @@ function drawChart(T, asc, maxV){
   const lc1=cssv('--lc1'), lc2=cssv('--lc2');
   curTag = headBase ? {v:T.cur, col: T.cur>=headBase.eur ? cssv('--up') : cssv('--down')} : {v:T.cur, col:ink};
   const data={datasets:[
-    {type:'bubble',label:'Compres',data:bub,backgroundColor:acc+'EB',borderColor:surf,borderWidth:1.5,hoverBorderColor:ink,hoverBorderWidth:2.5,hoverRadius:4,order:0,
+    {type:'bubble',label:'Compres',data:bub,backgroundColor:buyC+'E6',borderColor:acc,borderWidth:1.5,hoverBorderColor:acc,hoverBorderWidth:2.5,hoverRadius:4,order:0,
       animations: animMode==='none' ? {} : {radius:{from:0,duration:700,easing:'easeOutBack',delay:(c)=>c.type==='data'? (animMode==='first'?650:200)+c.dataIndex*110 : 0}}},
     {type:'line',label:'Preu',data:line,
       borderColor: velas ? 'transparent' : (c)=>{ const {ctx,chartArea}=c.chart; if(!chartArea) return lc2; const g=ctx.createLinearGradient(chartArea.left,0,chartArea.right,0); g.addColorStop(0,lc1); g.addColorStop(1,lc2); return g; },
-      borderWidth:2.6, borderCapStyle:'round', borderJoinStyle:'round', cubicInterpolationMode:'monotone', tension:0.35,
+      borderWidth:2.5, borderCapStyle:'round', borderJoinStyle:'round', cubicInterpolationMode:'monotone', tension:0.35,
       pointRadius:(c)=> !velas && dayMode && line.length<=2 ? 4 : 0, pointBackgroundColor:lc2, pointHoverRadius:0, order:2,
       fill: velas ? false : 'origin',
-      backgroundColor:(c)=>{const {ctx,chartArea}=c.chart; if(!chartArea) return 'transparent'; const g=ctx.createLinearGradient(0,chartArea.top,0,chartArea.bottom); g.addColorStop(0,lc2+'38'); g.addColorStop(.55,lc2+'10'); g.addColorStop(1,lc2+'00'); return g;}},
-    {type:'line',label:'Mitjà',data: dayMode ? (pcEur?[{x:minX,y:pcEur},{x:maxX,y:pcEur}]:[]) : (T.avg?[{x:minX,y:T.avg},{x:lastX+DAY,y:T.avg}]:[]),borderColor:muted,borderWidth:1.5,borderDash:[2,4],pointRadius:0,pointHoverRadius:0,order:1},
-    {type:'line',label:'Suposat',data:simEur!=null?[{x:minX,y:simEur},{x:maxX,y:simEur}]:[],borderColor:acc,borderWidth:2,borderDash:[6,4],pointRadius:0,pointHoverRadius:0,order:1}
+      backgroundColor:(c)=>{const {ctx,chartArea}=c.chart; if(!chartArea) return 'transparent'; const g=ctx.createLinearGradient(0,chartArea.top,0,chartArea.bottom); g.addColorStop(0,lc2+'26'); g.addColorStop(.6,lc2+'0A'); g.addColorStop(1,lc2+'00'); return g;}},
+    {type:'line',label:'Mitjà',data: dayMode ? (pcEur?[{x:minX,y:pcEur},{x:maxX,y:pcEur}]:[]) : (T.avg?[{x:minX,y:T.avg},{x:lastX+DAY,y:T.avg}]:[]),borderColor:ink+'CC',borderWidth:1.5,borderDash:[2,3],pointRadius:0,pointHoverRadius:0,order:1},
+    {type:'line',label:'Suposat',data:simEur!=null?[{x:minX,y:simEur},{x:maxX,y:simEur}]:[],borderColor:ch2,borderWidth:2,borderDash:[6,4],pointRadius:0,pointHoverRadius:0,order:1}
   ]};
   const options={responsive:true,maintainAspectRatio:false,
     animation: animMode==='none' ? false : {duration: animMode==='first'?900:550, easing:'easeOutQuart'},
@@ -951,9 +1068,9 @@ function drawChart(T, asc, maxV){
     events:['mousemove','mouseout','click','touchstart','touchmove','touchend'],
     interaction:{mode:'cartera',intersect:false}, layout:{padding:{top:16,right:2,bottom:4}},
     scales:{
-      x:{type:'linear',min:minX,max:maxX,grid:{color:grid,drawTicks:false},border:{color:grid},
-        ticks:{color:muted,font:{family:'IBM Plex Mono',size:11},maxRotation:0,maxTicksLimit:desk?10:5,callback:xTick}},
-      y:{position:'right',min: +(lo-pad).toFixed(2), max: +(hi+pad).toFixed(2),grid:{color:grid,drawTicks:false},border:{display:false},ticks:{color:muted,font:{family:'IBM Plex Mono',size:11},maxTicksLimit:7,padding:6,callback:v=>fmtN.format(v)}}
+      x:{type:'linear',min:minX,max:maxX,grid:{display: chartStyle==='velas', color:grid,drawTicks:false},border:{display:false,dash:[2,4]},
+        ticks:{color:muted,font:{family:'IBM Plex Sans',size:12},maxRotation:0,maxTicksLimit:desk?10:5,callback:xTick}},
+      y:{position:'right',min: +(lo-pad).toFixed(2), max: +(hi+pad).toFixed(2),grid:{color:grid,drawTicks:false},border:{display:false,dash:[2,4]},ticks:{color:muted,font:{family:'IBM Plex Sans',size:12},maxTicksLimit:7,padding:6,callback:v=>fmtN.format(v)}}
     },
     plugins:{legend:{display:false},tooltip:{enabled:false,external:externalTip}}
   };
@@ -1029,6 +1146,8 @@ function renderBtc(){
   const mult = okRatio ? ra/rb : null;
   $('bMult').innerHTML = okRatio ? `ASST ha fet <b>${fmtN.format(mult).replace(/,?0+$/,'')}×</b> el moviment de BTC` : `ASST ${fmtP.format(ra)} · BTC ${fmtP.format(rb)}: van en direccions diferents`;
   $('ampReal').textContent = okRatio ? fmtN.format(mult)+'×' : '–';
+  // Strive's amplification ratio = preferred notional ÷ BTC market value; with no debt, the common shares carry about 1 ÷ (1 − ratio) of BTC's moves
+  $('ampTheo').textContent = (ampRatio>0 && ampRatio<100) ? `Multiplicador teòric: 1 ÷ (1 − ${fmtN.format(ampRatio)} %) = ${fmtN.format(1/(1-ampRatio/100))}× (sense comptar caixa, deute ni prima de mercat).` : '';
   $('ampNote').textContent = `Real = rendiment d'ASST ÷ rendiment de BTC ${sub} (${fmtP.format(ra)} ÷ ${fmtP.format(rb)}).` + (okRatio?'':' Ara no es pot calcular: BTC gairebé no s\'ha mogut o van en sentit contrari.');
   $('bTitle').textContent = `Rendiment ${sub}`;
   drawBtc(pts, a0, b0);
@@ -1036,7 +1155,8 @@ function renderBtc(){
 function btcTipFn(ctx){
   const t=ctx.tooltip, el=$('btcTip'); if(!t || t.opacity===0){ el.style.opacity=0; return; }
   const dp=t.dataPoints||[]; if(!dp.length) return; const p=dp[0].raw.p;
-  el.innerHTML=`<b>${fd(p.d)}</b><span class="num" style="color:var(--asst-c)">ASST ${fmtP.format(p.a/p.a0-1)} · ${fmtE.format(p.a)}</span><span class="num" style="color:var(--accent-ink)">BTC ${fmtP.format(p.b/p.b0-1)} · ${new Intl.NumberFormat('ca-ES',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(p.b)}</span>`;
+  const ra=p.a/p.a0-1, rb=p.b/p.b0-1;
+  el.innerHTML=`<b>${fd(p.d)}</b><div class="row"><span><i class="sw"></i>Rendiment ASST</span><b>${fmtP.format(ra)}</b></div><div class="row"><span><i class="sw d"></i>Rendiment BTC</span><b>${fmtP.format(rb)}</b></div><div class="sep"></div><div class="row"><span>Diferència (ASST − BTC)</span><b class="${cls(ra-rb)}">${fmtP.format(ra-rb)}</b></div>`;
   el.style.opacity=1; const box=$('btcbox'), w=el.offsetWidth, h=el.offsetHeight;
   let x=t.caretX-w/2; x=Math.max(4,Math.min(box.clientWidth-w-4,x)); el.style.left=x+'px'; el.style.top='6px';
 }
@@ -1044,19 +1164,19 @@ const btcCross={ id:'btcCross', afterDatasetsDraw(c){ const a=c.tooltip&&c.toolt
   const x=a[0].element.x,{top,bottom}=c.chartArea,ctx=c.ctx; ctx.save(); ctx.strokeStyle=cssv('--muted'); ctx.globalAlpha=.6; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(x,top); ctx.lineTo(x,bottom); ctx.stroke(); ctx.restore(); } };
 function drawBtc(pts, a0, b0){
   if(!window.Chart) return;
-  const ac=cssv('--asst-c'), bc=cssv('--btc-c'), grid=cssv('--grid'), muted=cssv('--muted'), surf=cssv('--surface'), line=cssv('--line');
+  const ac=cssv('--asst-c'), bc=cssv('--btc-c'), grid=cssv('--grid'), muted=cssv('--tick'), surf=cssv('--surface'), line=cssv('--line');
   const xs=pts.map(p=>ts(p.d)), desk=isDesk();
   const mk=(k,base)=>pts.map((p,i)=>({x:xs[i], y:(p[k]/base-1)*100, p:{...p,a0,b0}}));
   const anim = btcAnim && !reduced(); btcAnim=false;
   const data={datasets:[
-    {label:'BTC',data:mk('b',b0),borderColor:bc,borderWidth:2.2,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:bc,pointHoverBorderColor:surf,pointHoverBorderWidth:2,tension:0},
-    {label:'ASST',data:mk('a',a0),borderColor:ac,borderWidth:2.2,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:ac,pointHoverBorderColor:surf,pointHoverBorderWidth:2,tension:0}
+    {label:'BTC',data:mk('b',b0),borderColor:bc,borderWidth:2,borderDash:[6,4],pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:bc,pointHoverBorderColor:surf,pointHoverBorderWidth:2,tension:0},
+    {label:'ASST',data:mk('a',a0),borderColor:ac,borderWidth:2.5,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:ac,pointHoverBorderColor:surf,pointHoverBorderWidth:2,tension:0}
   ]};
   const options={responsive:true,maintainAspectRatio:false, animation: anim?{duration:800,easing:'easeOutQuart'}:false,
     events:['mousemove','mouseout','click','touchstart','touchmove','touchend'],
     interaction:{mode:'index',intersect:false}, layout:{padding:{top:8,right:desk?12:4}},
-    scales:{ x:{type:'linear',min:xs[0],max:xs[xs.length-1],grid:{display:false},border:{color:grid},ticks:{color:muted,font:{family:'IBM Plex Mono',size:11},maxRotation:0,maxTicksLimit:desk?10:5,callback:v=>{const d=new Date(v);return `${d.getUTCDate()}/${d.getUTCMonth()+1}`;}}},
-      y:{grid:{color:c=>c.tick && c.tick.value===0 ? line : grid, lineWidth:c=>c.tick && c.tick.value===0 ? 1.5 : 1},border:{display:false},ticks:{color:muted,font:{family:'IBM Plex Mono',size:11},maxTicksLimit:6,callback:v=>(v>0?'+':'')+Math.round(v)+'%'}} },
+    scales:{ x:{type:'linear',min:xs[0],max:xs[xs.length-1],grid:{display:false},border:{color:grid},ticks:{color:muted,font:{family:'IBM Plex Sans',size:12},maxRotation:0,maxTicksLimit:desk?10:5,callback:v=>{const d=new Date(v);return `${d.getUTCDate()}/${d.getUTCMonth()+1}`;}}},
+      y:{position:'right',grid:{color:c=>c.tick && c.tick.value===0 ? line : grid, lineWidth:c=>c.tick && c.tick.value===0 ? 1.2 : 1},border:{display:false,dash:[2,4]},ticks:{color:muted,font:{family:'IBM Plex Sans',size:12},maxTicksLimit:6,callback:v=>(v>0?'+':'')+Math.round(v)+'%'}} },
     plugins:{legend:{display:false},tooltip:{enabled:false,external:btcTipFn}}
   };
   if(anim){ const cv=$('btcChart'); cv.classList.remove('reveal'); void cv.offsetWidth; cv.classList.add('reveal'); }
@@ -1066,12 +1186,12 @@ function drawBtc(pts, a0, b0){
 $('btcbox').addEventListener('touchend',()=>setTimeout(()=>{ if(btcChart){ btcChart.setActiveElements([]); btcChart.tooltip.setActiveElements([],{x:0,y:0}); btcChart.update('none'); $('btcTip').style.opacity=0; } },2500));
 document.querySelectorAll('#bRng button').forEach(b=>b.addEventListener('click',()=>{ haptic(); btcRange=+b.dataset.r; btcAnim=true; document.querySelectorAll('#bRng button').forEach(x=>x.setAttribute('aria-pressed',x===b)); renderBtc(); }));
 // amplification ratio (typed by hand, saved to the account)
-function showAmp(){ $('ampVal').value = ampRatio!=null ? ampRatio : ''; $('ampDate').textContent = ampDate ? `Dada de Strive actualitzada el ${fd(ampDate)}.` : 'Escriu la dada que surt a la web de Strive. Es guarda al teu compte.'; }
+function showAmp(){ $('ampVal').value = ampRatio!=null ? ampRatio : ''; if(typeof renderBtc==='function') try{ renderBtc(); }catch(e){} $('ampDate').textContent = ampDate ? `Dada de Strive actualitzada el ${fd(ampDate)}.` : 'Escriu la dada que surt a la web de Strive. Es guarda al teu compte.'; }
 let ampT; $('ampVal').addEventListener('input',()=>{ clearTimeout(ampT); ampT=setTimeout(saveAmp,900); });
 $('ampVal').addEventListener('change',()=>{ clearTimeout(ampT); saveAmp(); });
 async function saveAmp(){
   const raw=$('ampVal').value.trim(), v = raw==='' ? null : +(+raw).toFixed(4);
-  if(v!==null && !(v>=0)) return; if(v===ampRatio) return;
+  if(v!==null && !(v>=0 && v<100)) return; if(v===ampRatio) return;
   const d = v===null ? null : today();
   const {error}=await sb.from('config').upsert({user_id:user.id, av_key:avKey, fh_key:fhKey, amp_ratio:v, amp_date:d});
   if(error){ toast(/amp_/.test(error.message) ? "Falta afegir les columnes de l'amplification ratio a Supabase (mira les instruccions)." : "No s'ha pogut desar: "+error.message); return; }
@@ -1080,7 +1200,7 @@ async function saveAmp(){
 // desktop page switch
 document.querySelectorAll('#pageNav button').forEach(b=>b.addEventListener('click',()=>{
   haptic(); const btcPg=b.dataset.p==='btc'; document.body.classList.toggle('pg-btc',btcPg);
-  $('pgTitle').textContent = btcPg ? 'BTC vs ASST' : 'Cartera'; $('pgTk').hidden = btcPg;
+  $('pgTitle').innerHTML = btcPg ? 'BTC <em>vs</em> ASST' : '<em>Cartera</em> ASST'; $('pgTk').textContent = btcPg ? 'Rendiment comparat' : 'Nasdaq: ASST';
   requestAnimationFrame(()=>requestAnimationFrame(placeThumbs));
   document.querySelectorAll('#pageNav button').forEach(x=>x.setAttribute('aria-pressed',x===b));
   if(btcPg){ btcAnim=true; openBtc(); } else { chartMode='range'; render(); }
@@ -1101,7 +1221,7 @@ document.querySelectorAll('#tabbar button').forEach(b=>b.addEventListener('click
   placeInd(); scrollTo(0,0);
   if(b.dataset.v==='vInici'){ chartMode='range'; render(); }
   if(b.dataset.v==='vBtc'){ btcAnim=true; openBtc(); }
-  $('pgTitle').textContent = b.dataset.v==='vBtc' ? 'BTC vs ASST' : 'Cartera'; $('pgTk').hidden = b.dataset.v==='vBtc';
+  $('pgTitle').innerHTML = b.dataset.v==='vBtc' ? 'BTC <em>vs</em> ASST' : '<em>Cartera</em> ASST'; $('pgTk').textContent = b.dataset.v==='vBtc' ? 'Rendiment comparat' : 'Nasdaq: ASST';
   requestAnimationFrame(placeThumbs);
 }));
 
