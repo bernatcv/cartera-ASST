@@ -421,8 +421,11 @@ input.f:focus{outline:1px solid var(--accent);border-color:var(--accent)}
 .tip b{font-weight:600;font-size:14px;margin-bottom:6px}
 .tip .num{font-family:var(--display);font-weight:500;display:flex;justify-content:space-between;gap:16px}
 .tip .row{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:4px}
-.tip .row span:first-child{display:flex;align-items:center;gap:8px;color:var(--ink);opacity:.9}
-.tip .row b{margin:0;font-size:13px;font-weight:700}
+.tip .row > span:first-child{display:flex;align-items:center;gap:8px;color:var(--ink);opacity:.9}
+.tip .row b{margin:0;font-size:13px;font-weight:700;white-space:nowrap}
+.tip .row b .muted{font-size:11px;margin-left:4px}
+#tip{z-index:6;max-width:calc(100% - 8px)}
+@media (max-width:899px){ .tip{padding:10px 12px;font-size:12px} .tip b{font-size:13px;margin-bottom:4px} .tip .row{margin-top:2px;gap:14px} .tip .sep{margin:6px 0 4px} }
 .tip .sep{height:.8px;background:var(--line);margin:9px 0 6px}
 .tip i.sw{display:inline-block;width:12px;height:0;border-top:2px solid var(--accent)}
 .tip i.sw.d{border-top:2px dashed var(--btc-c)}
@@ -990,7 +993,9 @@ function externalTip(ctx){
   const box=$('chartbox'), w=el.offsetWidth, h=el.offsetHeight;
   const bx=it.element.x, by=it.element.y, br=(it.element.options&&it.element.options.radius)||10;
   let x=bx - w/2; x=Math.max(4, Math.min(box.clientWidth-w-4, x));
-  let y=by - br - h - 10; if(y<0) y=by+br+10;
+  // always above the finger: if there is no room inside the chart, it rises over the card's header (never under the finger, never over the text below the card)
+  const card=box.closest('.card'), minY = card ? card.getBoundingClientRect().top - box.getBoundingClientRect().top + 8 : 0;
+  let y=by - br - h - 12; if(y<minY) y=minY;
   el.style.left=x+'px'; el.style.top=y+'px';
 }
 function drawChart(T, asc, maxV){
