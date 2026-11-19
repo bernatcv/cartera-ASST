@@ -1015,7 +1015,9 @@ function drawChart(T, asc, maxV){
   } else {
     $('dayNote').hidden = true;
     line=T.s.map(([d,v])=>({x:ts(d),y:v.eur,usd:v.usd,est:v.est,d,live:!!v.live,t:v.t}));
-    lastX=line[line.length-1].x; const firstX=line[0].x; minX=range? Math.max(firstX,lastX-range*DAY) : firstX; maxX=lastX+DAY*1.5;
+    lastX=line[line.length-1].x; const firstX=line[0].x; minX=range? Math.max(firstX,lastX-range*DAY) : firstX;
+    { const span=lastX-minX, chartPx=Math.max(200, ($('chartbox').clientWidth||340)-60), maxR=(desk?19:16)+4;
+      maxX = lastX + Math.max(DAY*1.5, span*maxR/chartPx); }
     bub=asc.map(b=>({x:ts(b.data),y:+b.preu,r:(desk?6:5)+(desk?13:11)*Math.sqrt(b.valor/maxV),b,fx:fxOn(T.s,b.data)}));
     vis=line.filter(p=>p.x>=minX).map(p=>p.y).concat(bub.filter(p=>p.x>=minX).map(p=>p.y)); if(T.avg) vis.push(T.avg); if(simEur!=null) vis.push(simEur);
     xTick=v=>{const d=new Date(v);return `${d.getUTCDate()}/${d.getUTCMonth()+1}`;};
@@ -1046,12 +1048,13 @@ function drawChart(T, asc, maxV){
     headDef = {eur:T.cur, usd:T.curO.usd, est:T.curO.est, fresh:PL.fresh, when: PL.long};
     if(!$('hPriceRow').classList.contains('scrub')) paintHead(headDef);
   }
-  const lo=Math.min(...vis), hi=Math.max(...vis), pad=(hi-lo)*.08||1;
+  const lo=Math.min(...vis), hi=Math.max(...vis), boxH=Math.max(150, ($('chartbox').clientHeight||240)-40);
+  const pad = Math.max((hi-lo)*.08, bub.length ? (hi-lo)*((desk?19:16)+4)/boxH : 0) || 1;
   const velas = chartStyle==='velas' && candles.length>0;
   const lc1=cssv('--lc1'), lc2=cssv('--lc2');
   curTag = headBase ? {v:T.cur, col: T.cur>=headBase.eur ? cssv('--up') : cssv('--down')} : {v:T.cur, col:ink};
   const data={datasets:[
-    {type:'bubble',label:'Compres',data:bub,backgroundColor:buyC+'E6',borderColor:acc,borderWidth:1.5,hoverBorderColor:acc,hoverBorderWidth:2.5,hoverRadius:4,order:0,
+    {type:'bubble',label:'Compres',clip:false,data:bub,backgroundColor:buyC+'E6',borderColor:acc,borderWidth:1.5,hoverBorderColor:acc,hoverBorderWidth:2.5,hoverRadius:4,order:0,
       animations: animMode==='none' ? {} : {radius:{from:0,duration:700,easing:'easeOutBack',delay:(c)=>c.type==='data'? (animMode==='first'?650:200)+c.dataIndex*110 : 0}}},
     {type:'line',label:'Preu',data:line,
       borderColor: velas ? 'transparent' : (c)=>{ const {ctx,chartArea}=c.chart; if(!chartArea) return lc2; const g=ctx.createLinearGradient(chartArea.left,0,chartArea.right,0); g.addColorStop(0,lc1); g.addColorStop(1,lc2); return g; },
