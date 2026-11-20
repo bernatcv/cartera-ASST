@@ -886,8 +886,10 @@ Chart.Interaction.modes.cartera = function(chart, e){
   if(li<0) return [];
   const lraw = chart.data.datasets[1].data[li], linePt = {datasetIndex:1,index:li,element:lm.data[li]};
   const bm = chart.getDatasetMeta(0); let best=null, bd=Infinity;
-  bm.data.forEach((el,i)=>{ const raw=chart.data.datasets[0].data[i]; const same = raw && raw.b && lraw && raw.b.data===lraw.d;
-    const dx=Math.abs(el.x-pos.x); if((same || dx<=4) && dx<bd){ bd=dx; best={datasetIndex:0,index:i,element:el}; } });
+  bm.data.forEach((el,i)=>{ const raw=chart.data.datasets[0].data[i]; const dx=Math.abs(el.x-pos.x);
+    // daily chart: same day as the line point; 1D: the line has to pass over the bubble
+    const same = raw && raw.b && lraw && (raw.intra ? dx<=Math.max((el.options&&el.options.radius)||10, 14) : raw.b.data===lraw.d);
+    if((same || dx<=4) && dx<bd){ bd=dx; best={datasetIndex:0,index:i,element:el}; } });
   return best ? [best, linePt] : [linePt];
 };
 const crosshair = { id:'crosshair', afterDraw(c){ const a=c.tooltip&&c.tooltip.getActiveElements(); if(!a||!a.length) return;
@@ -1014,7 +1016,11 @@ function drawChart(T, asc, maxV){
     if(live && live.day===day && live.o>0 && !line.some(p=>p.x<=open+60e3)) line.unshift({x:open,y:live.o/fx,usd:live.o,t:open,d:day,intra:true,open:true});
     if(live && live.pc>0) pcEur = live.pc/fx;
     minX=open; maxX=close; lastX=close;
-    bub=[]; vis=line.map(p=>p.y); if(pcEur) vis.push(pcEur); if(simEur!=null) vis.push(simEur); if(!vis.length) vis.push(T.cur);
+    // purchases made on this session's day: no time is stored, so each one sits where the line touched its price (closest tick)
+    bub=asc.filter(b=>b.data===day).map(b=>{ const pr=+b.preu; let x=(open+close)/2, bd=Infinity;
+      for(const p of line){ const d=Math.abs(p.y-pr); if(d<bd){ bd=d; x=p.x; } }
+      return {x,y:pr,r:(desk?6:5)+(desk?13:11)*Math.sqrt(b.valor/maxV),b,fx:fxOn(T.s,b.data),intra:true}; });
+    vis=line.map(p=>p.y).concat(bub.map(p=>p.y)); if(pcEur) vis.push(pcEur); if(simEur!=null) vis.push(simEur); if(!vis.length) vis.push(T.cur);
     xTick=v=>hhmm(v);
     const nt=$('dayNote'); nt.hidden = line.length>2;
     nt.textContent = !fhKey ? "Per veure el dia en directe, afegeix la clau de Finnhub a Configuració." :
@@ -1030,7 +1036,7 @@ function drawChart(T, asc, maxV){
     xTick=v=>{const d=new Date(v);return `${d.getUTCDate()}/${d.getUTCMonth()+1}`;};
     minX = minX - DAY*.5;
   }
-  $('lgAvg').hidden = dayMode; $('lgBuy').hidden = dayMode; $('lgPc').hidden = !(dayMode && pcEur);
+  $('lgAvg').hidden = dayMode; $('lgBuy').hidden = dayMode && !bub.length; $('lgPc').hidden = !(dayMode && pcEur);
   // ---- candles ----
   candles = [];
   if(chartStyle==='velas'){
