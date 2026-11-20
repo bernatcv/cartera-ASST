@@ -73,7 +73,7 @@ button{cursor:pointer}
 .btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
 .btn.danger{background:transparent;color:var(--bad);border:1px solid var(--bad)}
 .btn svg{width:18px;height:18px}
-label.f{display:grid;gap:6px;font-size:12px;font-weight:500;color:var(--muted)}
+label.f{display:grid;gap:6px;align-content:start;font-size:12px;font-weight:500;color:var(--muted)}
 input.f{font-family:var(--mono);font-size:17px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:11px 12px;min-height:48px;width:100%;min-width:0}
 input.f:focus{outline:2px solid var(--accent);border-color:transparent}
 .msg{font-size:13px;min-height:1.2em}
@@ -399,6 +399,8 @@ input.f{background:var(--field);border:.8px solid var(--line);border-radius:8px;
 input.f:focus{outline:1px solid var(--accent);border-color:var(--accent)}
 .calc{font-family:var(--display);font-weight:700;background:var(--field);border:.8px dashed var(--accent);border-radius:8px}
 .calc small{color:var(--accent)}
+.usdh{display:block;min-height:15px;margin-top:-1px;font-size:12px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--muted,#888);font-variant-numeric:tabular-nums}
+.usdv{margin-left:8px;font-size:13px;font-weight:500;color:var(--muted,#888);white-space:nowrap}
 /* bottom tab bar: like the SATA / SATS / ASST / BTC switcher */
 .tabbar{background:#000;border-top:.8px solid var(--line)}
 :root:not([data-theme="dark"]) .tabbar{background:var(--surface)}
@@ -648,9 +650,9 @@ input.f:focus{outline:1px solid var(--accent);border-color:var(--accent)}
   <div class="fgrid">
     <label class="f full" for="bDate">Data<input class="f" id="bDate" type="date" required></label>
     <label class="f full" for="bSh">Num. accions<input class="f" id="bSh" type="number" step="0.000001" min="0.000001" inputmode="decimal" placeholder="24,788872" required></label>
-    <label class="f" for="bPrice">Preu ASST (€)<input class="f" id="bPrice" type="number" step="0.0001" min="0.0001" inputmode="decimal" placeholder="20,13" required></label>
+    <label class="f" for="bPrice">Preu ASST (€)<input class="f" id="bPrice" type="number" step="0.0001" min="0.0001" inputmode="decimal" placeholder="20,13" required><span class="usdh" id="bPriceU"></span></label>
     <label class="f" for="bCom">Comissió (€)<input class="f" id="bCom" type="number" step="0.01" min="0" inputmode="decimal" value="1"></label>
-    <div class="full" style="display:grid;gap:6px"><span class="lbl" id="bValL">Valor de la compra</span><output class="calc" id="bValOut" for="bSh bPrice bCom" aria-labelledby="bValL"><span id="bValTxt">–</span><small>calculat</small></output></div>
+    <div class="full" style="display:grid;gap:6px"><span class="lbl" id="bValL">Valor de la compra</span><output class="calc" id="bValOut" for="bSh bPrice bCom" aria-labelledby="bValL"><span><span id="bValTxt">–</span><span class="usdv" id="bValU"></span></span><small>calculat</small></output></div>
   </div>
   <p class="muted" style="margin:-4px 0 0;font-size:12px">Valor = accions × preu + comissió. El calcula l'app sola.</p>
   <div class="actions"><button class="btn" type="submit" id="bSave">Desa la compra</button></div>
@@ -1247,8 +1249,12 @@ function buyValue(){ const n=+$('bSh').value, p=+$('bPrice').value, c=+$('bCom')
 let lastBV=null;
 function preview(){ const v=buyValue(), o=$('bValOut');
   $('bValTxt').textContent = v==null ? '–' : fmtE.format(v);
+  let fx=null; try{ const sr=series(); if(sr.length) fx=fxOn(sr, $('bDate').value||today()); }catch(e){}
+  const p=+$('bPrice').value;
+  $('bPriceU').textContent = fx&&p>0 ? '≈ '+fmtU.format(p*fx) : '';
+  $('bValU').textContent = fx&&v!=null ? '≈ '+fmtU.format(v*fx) : '';
   if(v!==lastBV && v!=null){ o.classList.remove('bump'); void o.offsetWidth; o.classList.add('bump'); } lastBV=v; }
-['bSh','bPrice','bCom'].forEach(i=>$(i).addEventListener('input',preview));
+['bSh','bPrice','bCom','bDate'].forEach(i=>$(i).addEventListener('input',preview)); $('bDate').addEventListener('change',preview);
 function openBuy(b){
   editing = b ? b.id : null; $('bMsg').textContent=''; lastBV=null;
   $('buyTitle').textContent = b ? `Compra del ${fd(b.data)}` : 'Nova compra';
