@@ -999,7 +999,7 @@ function externalTip(ctx){
     if(all.length<2){ html=`<b>Compra · ${fd(day)}</b>`+one(all[0]||it.raw); }
     else { const inv=all.reduce((a,p)=>a+ +p.b.valor,0), n=all.reduce((a,p)=>a+shares(p.b),0), now=n*cur;
       html=`<b>${all.length} compres · ${fd(day)}</b>`+all.map((p,i)=>`<div class="sep"></div><span class="tsub">Compra ${i+1}</span>`+one(p)).join('')+
-        `<div class="sep"></div><span class="tsub">Total del dia</span><div class="row"><span>Invertit</span><b>${fmtE.format(inv)}</b></div><div class="row"><span>Accions</span><b>${fmtS.format(n)}</b></div><div class="row"><span>Ara val</span><b class="${cls(now-inv)}">${fmtE.format(now)} (${signE(now-inv)})</b></div>`; }
+        `<div class="sep"></div><span class="tsub">Total del dia</span><div class="row"><span>Invertit</span><b>${fmtE.format(inv)}</b></div><div class="row"><span>Preu mitjà</span><b>${fmtE.format(inv/n)} <span class="muted" style="font-weight:500">≈ ${fmtU.format(inv/n*all[0].fx)}</span></b></div><div class="row"><span>Accions</span><b>${fmtS.format(n)}</b></div><div class="row"><span>Ara val</span><b class="${cls(now-inv)}">${fmtE.format(now)} (${signE(now-inv)})</b></div>`; }
   } else { const r=it.raw; html=`<b>${r.intra ? (r.open?'Obertura · ':'')+hhmm(r.t) : fd(r.d)+(r.live?' · '+hhmm(r.t):'')}</b><span class="num">${r.intra?'Preu':(r.live?'Últim preu':'Tancament')}: ${fmtE.format(r.y)}</span><span class="num">En dòlars: ${r.est?'≈ ':''}${fmtU.format(r.usd)}</span>`; }
   el.innerHTML=html; el.style.opacity=1;
   const box=$('chartbox'), w=el.offsetWidth, h=el.offsetHeight;
