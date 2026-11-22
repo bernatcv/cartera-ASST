@@ -1031,7 +1031,9 @@ function drawChart(T, asc, maxV){
     lastX=line[line.length-1].x; const firstX=line[0].x; minX=range? Math.max(firstX,lastX-range*DAY) : firstX;
     { const span=lastX-minX, chartPx=Math.max(200, ($('chartbox').clientWidth||340)-60), maxR=(desk?19:16)+4;
       maxX = lastX + Math.max(DAY*1.5, span*maxR/chartPx); }
-    bub=asc.map(b=>({x:ts(b.data),y:+b.preu,r:(desk?6:5)+(desk?13:11)*Math.sqrt(b.valor/maxV),b,fx:fxOn(T.s,b.data)}));
+    // each purchase sits on the line: on that day's point (the last trading day if it fell on a closed day); the card still shows the real purchase price
+    bub=asc.map(b=>{ let pt=null; for(const p of line){ if(p.d<=b.data) pt=p; else break; } if(!pt) pt=line[0];
+      return {x:pt.x,y:pt.y,r:(desk?6:5)+(desk?13:11)*Math.sqrt(b.valor/maxV),b,fx:fxOn(T.s,b.data)}; }).sort((a,c)=>c.r-a.r);
     vis=line.filter(p=>p.x>=minX).map(p=>p.y).concat(bub.filter(p=>p.x>=minX).map(p=>p.y)); if(T.avg) vis.push(T.avg); if(simEur!=null) vis.push(simEur);
     xTick=v=>{const d=new Date(v);return `${d.getUTCDate()}/${d.getUTCMonth()+1}`;};
     minX = minX - DAY*.5;
