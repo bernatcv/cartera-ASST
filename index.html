@@ -427,6 +427,7 @@ input.f:focus{outline:1px solid var(--accent);border-color:var(--accent)}
 .tip .row b{margin:0;font-size:13px;font-weight:700;white-space:nowrap}
 .tip .row b .muted{font-size:11px;margin-left:4px}
 #tip{z-index:6;max-width:calc(100% - 8px)}
+.tip .tsub{display:block;font-size:10.5px;font-weight:600;letter-spacing:.88px;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
 @media (max-width:899px){ .tip{padding:10px 12px;font-size:12px} .tip b{font-size:13px;margin-bottom:4px} .tip .row{margin-top:2px;gap:14px} .tip .sep{margin:6px 0 4px} }
 .tip .sep{height:.8px;background:var(--line);margin:9px 0 6px}
 .tip i.sw{display:inline-block;width:12px;height:0;border-top:2px solid var(--accent)}
@@ -990,8 +991,15 @@ function externalTip(ctx){
   if(!bubIt){ el.style.opacity=0; return; }
   const it=bubIt;
   let html;
-  if(it.datasetIndex===0){ const b=it.raw.b, n=shares(b), now=n*totals().cur;
-    html=`<b>Compra · ${fd(b.data)}</b><div class="row"><span>Invertit</span><b>${fmtE.format(b.valor)}</b></div><div class="row"><span>Preu</span><b>${fmtE.format(b.preu)} <span class="muted" style="font-weight:500">≈ ${fmtU.format(b.preu*it.raw.fx)}</span></b></div><div class="row"><span>Accions</span><b>${fmtS.format(n)}</b></div><div class="sep"></div><div class="row"><span>Ara val</span><b class="${cls(now-b.valor)}">${fmtE.format(now)} (${signE(now-b.valor)})</b></div>`;
+  if(it.datasetIndex===0){
+    // every purchase made that day, not only the bubble under the finger
+    const day=it.raw.b.data, cur=totals().cur, all=(ctx.chart.data.datasets[0].data||[]).filter(p=>p&&p.b&&p.b.data===day);
+    const one=p=>{ const b=p.b, n=shares(b), now=n*cur;
+      return `<div class="row"><span>Invertit</span><b>${fmtE.format(b.valor)}</b></div><div class="row"><span>Preu</span><b>${fmtE.format(b.preu)} <span class="muted" style="font-weight:500">≈ ${fmtU.format(b.preu*p.fx)}</span></b></div><div class="row"><span>Accions</span><b>${fmtS.format(n)}</b></div><div class="row"><span>Ara val</span><b class="${cls(now-b.valor)}">${fmtE.format(now)} (${signE(now-b.valor)})</b></div>`; };
+    if(all.length<2){ html=`<b>Compra · ${fd(day)}</b>`+one(all[0]||it.raw); }
+    else { const inv=all.reduce((a,p)=>a+ +p.b.valor,0), n=all.reduce((a,p)=>a+shares(p.b),0), now=n*cur;
+      html=`<b>${all.length} compres · ${fd(day)}</b>`+all.map((p,i)=>`<div class="sep"></div><span class="tsub">Compra ${i+1}</span>`+one(p)).join('')+
+        `<div class="sep"></div><span class="tsub">Total del dia</span><div class="row"><span>Invertit</span><b>${fmtE.format(inv)}</b></div><div class="row"><span>Accions</span><b>${fmtS.format(n)}</b></div><div class="row"><span>Ara val</span><b class="${cls(now-inv)}">${fmtE.format(now)} (${signE(now-inv)})</b></div>`; }
   } else { const r=it.raw; html=`<b>${r.intra ? (r.open?'Obertura · ':'')+hhmm(r.t) : fd(r.d)+(r.live?' · '+hhmm(r.t):'')}</b><span class="num">${r.intra?'Preu':(r.live?'Últim preu':'Tancament')}: ${fmtE.format(r.y)}</span><span class="num">En dòlars: ${r.est?'≈ ':''}${fmtU.format(r.usd)}</span>`; }
   el.innerHTML=html; el.style.opacity=1;
   const box=$('chartbox'), w=el.offsetWidth, h=el.offsetHeight;
