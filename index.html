@@ -255,6 +255,7 @@ input.f:focus{outline:2px solid var(--accent);border-color:transparent}
   #vSim .sectionhead{padding:0 0 4px}
   .simwrap{background:var(--surface);border-radius:16px;padding:20px 22px;box-shadow:inset 0 0 0 1.5px var(--accent)}
   .simwrap .simcard{box-shadow:none;padding:0}
+  .simwrap .simcard{padding:18px 20px;gap:14px} .simwrap .simcard .chips{gap:8px} .simwrap .simsh{padding-top:16px} .simwrap .simres{gap:12px;margin-top:16px} .simwrap .simres .tile{padding:16px 18px}
   .simwrap .simres .tile{background:var(--bg);border:0}
   .sheet{left:50%;right:auto;bottom:auto;top:50%;transform:translate(-50%,-50%);width:520px;border-radius:20px;padding:20px 24px}
   .grab{display:none}
@@ -427,6 +428,15 @@ input.f:focus{outline:1px solid var(--accent);border-color:var(--accent)}
 .tip .row b{margin:0;font-size:13px;font-weight:700;white-space:nowrap}
 .tip .row b .muted{font-size:11px;margin-left:4px}
 #tip{z-index:6;max-width:calc(100% - 8px)}
+.bperf{margin:4px 0 16px;padding:14px 16px;border-radius:14px;background:var(--field);border:.8px solid var(--line);border-left:3px solid var(--tone,var(--line));display:grid;gap:8px}
+.bperf .bp-main{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.bperf .bp-main b{font-size:28px;font-weight:700;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.bperf .bp-pct{font-size:15px;font-weight:600}
+.bperf .bp-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px;padding-top:10px;border-top:1px solid var(--line)}
+.bperf .bp-grid div{display:grid;gap:2px;min-width:0}
+.bperf .bp-grid b{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums}
+.bperf .bp-grid small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bperf small.pos{color:var(--good)} .bperf small.neg{color:var(--bad)}
 .tip .tsub{display:block;font-size:10.5px;font-weight:600;letter-spacing:.88px;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
 @media (max-width:899px){ .tip{padding:10px 12px;font-size:12px} .tip b{font-size:13px;margin-bottom:4px} .tip .row{margin-top:2px;gap:14px} .tip .sep{margin:6px 0 4px} }
 .tip .sep{height:.8px;background:var(--line);margin:9px 0 6px}
@@ -549,7 +559,7 @@ input.f:focus{outline:1px solid var(--accent);border-color:var(--accent)}
         <div class="caps" id="bCaps"></div>
         <div class="blist" id="blist"></div>
         <div class="btable"><table>
-          <thead><tr><th scope="col">Data</th><th scope="col">Valor</th><th scope="col">Preu ASST</th><th scope="col">Accions</th><th scope="col">Comissió</th><th scope="col">Ara val</th></tr></thead>
+          <thead><tr><th scope="col">Data</th><th scope="col">Valor</th><th scope="col">Preu ASST</th><th scope="col">Accions</th><th scope="col">Comissió</th><th scope="col" id="thNow">Ara val</th></tr></thead>
           <tbody id="btb"></tbody><tfoot id="btf"></tfoot>
         </table></div>
       </div>
@@ -648,6 +658,7 @@ input.f:focus{outline:1px solid var(--accent);border-color:var(--accent)}
 <form class="sheet" id="buySheet" hidden autocomplete="off" aria-labelledby="buyTitle">
   <span class="grab"></span>
   <div class="sheethead"><h3 id="buyTitle">Nova compra</h3><button class="btn ghost" type="button" data-close style="min-height:40px">Cancel·la</button></div>
+  <div class="bperf" id="bPerf" hidden></div>
   <div class="fgrid">
     <label class="f full" for="bDate">Data<input class="f" id="bDate" type="date" required></label>
     <label class="f full" for="bSh">Num. accions<input class="f" id="bSh" type="number" step="0.000001" min="0.000001" inputmode="decimal" placeholder="24,788872" required></label>
@@ -771,7 +782,9 @@ function series(){
   const m = new Map(HIST.map(([d,u,fx])=>[d,{eur:u/fx,usd:u,fx,est:false}]));
   prices.forEach(p=>m.set(p.data,{eur:+p.eur,usd:+p.usd,fx:+p.fx,est:!!p.fx_est}));
   if(live){ const days=[...m.keys()].sort(), last=days[days.length-1];
-    if(live.day>=last) m.set(live.day,{eur:live.eur,usd:live.usd,fx:live.fx,est:live.fxEst,live:true,t:live.t,dp:live.dp}); }
+    if(live.day>=last) m.set(live.day,{eur:live.eur,usd:live.usd,fx:live.fx,est:live.fxEst,live:true,t:live.t,dp:live.dp});
+    if(live.pc>0){ const d=new Date(live.day+'T12:00:00Z'); do{ d.setUTCDate(d.getUTCDate()-1); }while(d.getUTCDay()===0||d.getUTCDay()===6);
+      const pd=d.toISOString().slice(0,10); if(pd>last && pd<live.day) m.set(pd,{eur:live.pc/live.fx,usd:live.pc,fx:live.fx,est:live.fxEst}); } }
   return [...m.entries()].sort((a,b)=>a[0]<b[0]?-1:1);
 }
 // Intraday points collected while the app is open (free APIs give no intraday history)
@@ -827,21 +840,24 @@ function render(){
   const desc = [...buys].sort((a,b)=>a.data<b.data?1:-1);
   const asc = [...buys].sort((a,b)=>a.data<b.data?-1:1);
   const bsig = JSON.stringify(buys.map(b=>[b.id,b.data,b.valor,b.preu,b.comissio,b.accions]));
-  const sig = bsig + '|' + T.cur.toFixed(4);
+  // on desktop the simulator sits next to the list: a supposed price re-scores every purchase
+  const simRaw=parseFloat($('simVal').value), simP = isDesk() && simRaw>0 ? (simCur==='EUR'? simRaw : simRaw/T.curO.fx) : null, px = simP ?? T.cur;
+  const sig = bsig + '|' + px.toFixed(4) + (simP!=null?'s':'');
   const rebuild = sig!==listSig, restagger = !listSig.startsWith(bsig+'|'); listSig = sig;
   const stg = restagger ? 'stg' : '';
   if(rebuild){
-  $('bCaps').textContent = buys.length ? `${buys.length} ${buys.length===1?'compra':'compres'} · més recent primer` : '';
+  $('bCaps').textContent = buys.length ? `${buys.length} ${buys.length===1?'compra':'compres'} · més recent primer` + (simP!=null ? ` · rendiment a ${fmtE.format(simP)} (preu suposat)` : '') : '';
   $('blist').innerHTML = desc.length ? desc.map(b=>{
-    const n=shares(b), d=n*T.cur-b.valor, sz=12+16*Math.sqrt(b.valor/maxV);
+    const n=shares(b), d=n*px-b.valor, sz=12+16*Math.sqrt(b.valor/maxV);
     return `<button type="button" class="bcard ${stg}" style="--i:${desc.indexOf(b)}" data-id="${b.id}" aria-label="Edita la compra del ${fd(b.data)}">
       <span class="dot"><i style="width:${sz.toFixed(0)}px;height:${sz.toFixed(0)}px"></i></span>
       <span class="d">${fd(b.data)}</span><span class="r">${fmtE.format(b.valor)}</span>
       <span class="s">${fmtS.format(n)} acc. a ${fmtE.format(b.preu)}</span><span class="r ${cls(d)}" style="font-size:12px">${signE(d)}</span></button>`;
   }).join('') : '<div class="empty">Encara no hi ha compres. Prem «Afegeix» per posar la primera.</div>';
-  $('btb').innerHTML = asc.map(b=>{ const n=shares(b), d=n*T.cur-b.valor, sz=10+12*Math.sqrt(b.valor/maxV);
+  $('thNow').innerHTML = simP!=null ? `<span style="color:var(--accent)">Si val ${fmtE.format(simP)}</span>` : 'Ara val';
+  $('btb').innerHTML = asc.map(b=>{ const n=shares(b), d=n*px-b.valor, sz=10+12*Math.sqrt(b.valor/maxV);
     return `<tr class="${stg}" style="--i:${asc.indexOf(b)}" data-id="${b.id}" tabindex="0"><td><span style="display:inline-flex;align-items:center;gap:10px"><i style="display:block;width:${sz.toFixed(0)}px;height:${sz.toFixed(0)}px;border-radius:50%;background:var(--accent)"></i>${fd(b.data)}</span></td><td>${fmtE.format(b.valor)}</td><td>${fmtE.format(b.preu)}</td><td>${fmtS.format(n)}</td><td>${fmtE.format(b.comissio)}</td><td class="${cls(d)}">${signE(d)}</td></tr>`; }).join('');
-  $('btf').innerHTML = buys.length ? `<tr><td>Total</td><td>${fmtE.format(T.inv)}</td><td>${fmtE.format(T.avg)}</td><td>${fmtS.format(T.sh)}</td><td>${fmtE.format(T.com)}</td><td class="${cls(T.pl)}">${signE(T.pl)}</td></tr>` : '';
+  $('btf').innerHTML = buys.length ? `<tr><td>Total</td><td>${fmtE.format(T.inv)}</td><td>${fmtE.format(T.avg)}</td><td>${fmtS.format(T.sh)}</td><td>${fmtE.format(T.com)}</td><td class="${cls(T.sh*px-T.inv)}">${signE(T.sh*px-T.inv)}</td></tr>` : '';
   }
 
   renderSim(T);
@@ -1036,6 +1052,10 @@ function drawChart(T, asc, maxV){
   } else {
     $('dayNote').hidden = true;
     line=T.s.map(([d,v])=>({x:ts(d),y:v.eur,usd:v.usd,est:v.est,d,live:!!v.live,t:v.t}));
+    { const have=new Set(line.map(p=>p.d)), add=new Map();
+      asc.forEach(b=>{ if(have.has(b.data)) return; const a=add.get(b.data)||{v:0,n:0}; const n=shares(b); a.v+=n*b.preu; a.n+=n; add.set(b.data,a); });
+      add.forEach((a,d)=>{ const fx=fxOn(T.s,d), y=a.v/a.n; line.push({x:ts(d),y,usd:y*fx,est:true,d,fromBuy:true}); });
+      if(add.size) line.sort((a,b)=>a.x-b.x); }
     lastX=line[line.length-1].x; const firstX=line[0].x; minX=range? Math.max(firstX,lastX-range*DAY) : firstX;
     { const span=lastX-minX, chartPx=Math.max(200, ($('chartbox').clientWidth||340)-60), maxR=(desk?19:16)+4;
       maxX = lastX + Math.max(DAY*1.5, span*maxR/chartPx); }
@@ -1271,11 +1291,29 @@ function preview(){ const v=buyValue(), o=$('bValOut');
   $('bValU').textContent = fx&&v!=null ? '≈ '+fmtU.format(v*fx) : '';
   if(v!==lastBV && v!=null){ o.classList.remove('bump'); void o.offsetWidth; o.classList.add('bump'); } lastBV=v; }
 ['bSh','bPrice','bCom','bDate'].forEach(i=>$(i).addEventListener('input',preview)); $('bDate').addEventListener('change',preview);
+// performance of one purchase at today's price
+function perfBuy(b){
+  const el=$('bPerf'); if(!b){ el.hidden=true; el.innerHTML=''; return; }
+  const T=totals(), n=shares(b), now=n*T.cur, pl=now-b.valor, r=b.valor? pl/b.valor : 0, dp=T.cur/b.preu-1;
+  const days=Math.max(0,Math.round((Date.parse(today())-Date.parse(b.data))/DAY));
+  const tone=pl>0?'var(--good)':pl<0?'var(--bad)':'var(--line)';
+  el.style.setProperty('--tone',tone);
+  el.innerHTML=`<span class="lbl">Rendiment d'aquesta compra</span>
+    <div class="bp-main"><b class="${cls(pl)}">${signE(pl)}</b><span class="bp-pct ${cls(pl)}">${fmtP.format(r)}</span></div>
+    <div class="bp-grid">
+      <div><span class="lbl">Ara val</span><b>${fmtE.format(now)}</b><small>≈ ${fmtU.format(now*T.curO.fx)}</small></div>
+      <div><span class="lbl">Invertit</span><b>${fmtE.format(b.valor)}</b><small>comissió inclosa</small></div>
+      <div><span class="lbl">Preu ara</span><b>${fmtE.format(T.cur)}</b><small class="${cls(dp)}">${fmtP.format(dp)} vs ${fmtE.format(b.preu)}</small></div>
+      <div><span class="lbl">Temps</span><b>${days} ${days===1?'dia':'dies'}</b><small>des del ${fd(b.data)}</small></div>
+    </div>`;
+  el.hidden=false;
+}
 function openBuy(b){
   editing = b ? b.id : null; $('bMsg').textContent=''; lastBV=null;
   $('buyTitle').textContent = b ? `Compra del ${fd(b.data)}` : 'Nova compra';
   $('bDate').value = b ? b.data : today(); $('bPrice').value = b ? b.preu : ''; $('bCom').value = b ? b.comissio : 1; $('bSh').value = b ? shares(b).toFixed(6) : ''; preview();
   $('bSave').textContent = b ? 'Desa els canvis' : 'Desa la compra'; $('bDelRow').hidden = !b; $('bDel').textContent='Esborra aquesta compra'; delete $('bDel').dataset.confirm;
+  perfBuy(b);
   openSheet('buySheet'); if(!b && isDesk()) setTimeout(()=>$('bSh').focus(),350);
 }
 $('addBtn').addEventListener('click',()=>openBuy(null));
